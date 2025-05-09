@@ -1,5 +1,6 @@
 {
   "DASHBOARD": "Dashboard",
   "ACTIVITY_OVERVIEW":"Activity Overview",
-  "AGENTS":"Agents"
+  "AGENTS":"Agents",
+  "ADD_AGENT":"Add Agent"
 }

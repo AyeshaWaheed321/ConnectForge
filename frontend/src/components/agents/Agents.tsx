@@ -5,6 +5,9 @@ import './agents.scss';
 
 // Components
 import Chat from '../chat/Chat';
+import AgentModal from './AddAgentModal';
+
+// Localization
 import LOCALIZATION from '../../services/LocalizationService';
 
 const Agents: React.FC = () => {
@@ -58,7 +61,7 @@ const Agents: React.FC = () => {
           onClick={() => setIsModalOpen(true)}
           className="configure-button"
         >
-          + Configure
+          { LOCALIZATION.ADD_AGENT } 
         </Button>
       </div>
 
@@ -95,7 +98,12 @@ const Agents: React.FC = () => {
         ))}
       </div>
 
-      <Modal
+      <AgentModal
+          visible={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSubmit={() => {}}
+        />
+      {/* <Modal
         title="Configure New Agent"
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
@@ -125,7 +133,7 @@ const Agents: React.FC = () => {
             </Button>
           </Form.Item>
         </Form>
-      </Modal>
+      </Modal> */}
     </div>
   );
 };
