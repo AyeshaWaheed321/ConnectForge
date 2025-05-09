@@ -1,0 +1,200 @@
+@import '../../styles/variables.scss';
+
+.dashboard {
+  h1 {
+    margin-bottom: $spacing-xl;
+    font-weight: 500;
+    font-size: 24px;       // Approximate height of 36px depending on font
+    line-height: 36px;     // Matches height from Figma
+
+  }
+  
+  .dashboard-sections {
+    margin-top: $spacing-xl;
+  }
+}
+
+.status-card {
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  padding: 16px;
+  transition: box-shadow 0.3s ease;
+  min-height: 120px;
+
+  .status-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+
+    .status-card-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #555;
+    }
+
+    .status-card-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .status-card-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .status-card-value {
+    font-size: 24px;
+    font-weight: 600;
+    color: #111;
+  }
+
+  .status-card-percentage {
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  &.primary {
+    background-color: #fff;
+    border: 1px solid #eee;
+    .status-card-percentage {
+      color: #00b96b;
+    }
+  }
+
+  &.info {
+    background-color: #fff;
+    border: 1px solid #eee;
+    .status-card-percentage {
+      color: #00b96b;
+    }
+  }
+
+  &.success {
+    background-color: #eaffea;
+    .status-card-percentage {
+      color: #00b96b;
+    }
+  }
+
+  &.error {
+    background-color: #ffbcbc;
+    .status-card-value {
+      color: #d8000c;
+    }
+    .status-card-percentage {
+      color: #d8000c;
+    }
+  }
+}
+
+
+.activity-overview {
+  background: #fff;
+  border-radius: $border-radius-lg;
+  padding: $spacing-lg;
+  
+  .activity-item {
+    padding: $spacing-md 0;
+    border-bottom: 1px solid $border-color;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    .activity-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      
+      .activity-main {
+        flex: 1;
+      }
+      
+      .activity-title {
+        font-weight: 500;
+        margin-bottom: $spacing-xs;
+        display: flex;
+        align-items: center;
+        
+        .activity-icon {
+          margin-right: $spacing-sm;
+          color: $primary-color;
+        }
+      }
+      
+      .activity-meta {
+        font-size: $font-size-sm;
+        color: $text-color-secondary;
+        margin-bottom: 0;
+      }
+      
+      .activity-time {
+        color: $text-color-secondary;
+        font-size: $font-size-sm;
+      }
+    }
+  }
+}
+
+.system-status {
+  background: #fff;
+  border-radius: $border-radius-lg;
+  padding: $spacing-lg;
+  
+  .status-section {
+    margin-bottom: $spacing-xl;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    .status-section-title {
+      font-weight: 500;
+      margin-bottom: $spacing-md;
+    }
+  }
+  
+  .status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-md;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    .status-label {
+      margin: 0;
+    }
+    
+    .status-value {
+      font-weight: 500;
+    }
+  }
+  
+  .resource-item {
+    margin-bottom: $spacing-md;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    .resource-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: $spacing-xs;
+      
+      .resource-label {
+        margin: 0;
+      }
+      
+      .resource-value {
+        font-weight: 500;
+      }
+    }
+  }
+}

@@ -1,0 +1,107 @@
+
+@import '../../styles/variables.scss';
+
+.chat-screen {
+  height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+
+  .chat-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $spacing-lg;
+    margin-bottom: $spacing-sm;
+
+    h1 {
+      flex: 1;
+      text-align: center;
+      margin: 0;
+    }
+
+    button:first-child {
+      margin-right: auto;
+    }
+
+    button:last-child {
+      margin-left: auto;
+    }
+
+    .voice-command {
+      background: $primary-light;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: $spacing-xs;
+
+      &:hover {
+        background: lighten($primary-light, 5%);
+      }
+    }
+  }
+
+  .chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 $spacing-lg;
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: $spacing-md 0;
+
+      .message {
+        margin-bottom: $spacing-md;
+
+        .message-content {
+          max-width: 80%;
+          background: #fff;
+          padding: $spacing-md;
+          border-radius: $border-radius-lg;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+          .message-text {
+            margin: 0;
+            white-space: pre-wrap;
+          }
+
+          .message-meta {
+            margin-top: $spacing-sm;
+            font-size: $font-size-sm;
+            color: $text-color-secondary;
+            display: flex;
+            justify-content: space-between;
+
+            .sender {
+              font-weight: 500;
+            }
+          }
+        }
+      }
+    }
+
+    .chat-input {
+      display: flex;
+      gap: $spacing-sm;
+      padding: $spacing-md 0 $spacing-lg;
+
+      .ant-input {
+        border-radius: $border-radius-lg;
+      }
+
+      button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: $border-radius-lg;
+        background: $primary-light;
+        border: none;
+
+        &:hover {
+          background: lighten($primary-light, 5%);
+        }
+      }
+    }
+  }
+}

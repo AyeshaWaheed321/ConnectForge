@@ -1,0 +1,135 @@
+
+.agents-screen {
+  padding: 24px;
+  background-color: #f8f9fb;
+
+  .agents-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #111827;
+      margin: 0;
+    }
+
+    .configure-button {
+      background-color: #8b5cf6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      height: 40px;
+      padding: 0 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+  }
+
+  .agents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+
+  .agent-card {
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    .agent-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+
+      h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      .ant-tag {
+        font-size: 12px;
+        padding: 0 10px;
+        border-radius: 16px;
+        background-color: #f0fff0;
+        color: #22c55e;
+        border: 1px solid #bbf7d0;
+      }
+
+      .ant-tag-default {
+        background-color: #f3f4f6;
+        color: #4b5563;
+        border: 1px solid #d1d5db;
+      }
+    }
+
+    .provider {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 8px;
+    }
+
+    .description {
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+
+      .ant-tag {
+        background-color: #e0e7ff;
+        border: none;
+        font-size: 12px;
+        color: #4338ca;
+        padding: 4px 12px;
+        border-radius: 9999px;
+      }
+    }
+
+    .agent-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+
+      .ant-btn {
+        flex: 1;
+        font-size: 13px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background-color: #f9fafb;
+        border: 1px solid #f3f4f6;
+        color: #1f2937;
+
+        &:hover {
+          background-color: #f3f4f6;
+          border-color: #e5e7eb;
+        }
+      }
+
+      .ant-btn-dangerous {
+        background-color: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+
+        &:hover {
+          background-color: #fee2e2;
+        }
+      }
+    }
+  }
+}
