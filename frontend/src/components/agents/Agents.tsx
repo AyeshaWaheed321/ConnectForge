@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { Button, Modal, Form, Input, Card, Tag, Tooltip } from 'antd';
-import { MessageSquare, Trash2, Pause, Play } from 'lucide-react';
+import { MessageSquare, Trash2, Pause, Play, ArrowLeft } from 'lucide-react';
 import './agents.scss';
 
-interface AgentsProps {
-  onChatClick: () => void;
-}
+// Components
+import Chat from '../chat/Chat';
+import LOCALIZATION from '../../services/LocalizationService';
 
-const Agents: React.FC<AgentsProps> = ({ onChatClick }) => {
+const Agents: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [chatMode, setChatMode] = useState(false); // track chat screen
 
   const agents = [
     {
@@ -42,10 +43,16 @@ const Agents: React.FC<AgentsProps> = ({ onChatClick }) => {
     setIsModalOpen(false);
   };
 
+  if (chatMode) {
+    return (
+     <Chat onBack={() => setChatMode(false)} />
+    );
+  }
+
   return (
     <div className="agents-screen">
       <div className="agents-header">
-        <h1>Agents</h1>
+        <h1>{LOCALIZATION.AGENTS}</h1>
         <Button 
           type="primary" 
           onClick={() => setIsModalOpen(true)}
@@ -78,7 +85,7 @@ const Agents: React.FC<AgentsProps> = ({ onChatClick }) => {
                 <Button icon={<Play size={16} />}>Start</Button>
               )}
               <Tooltip title="Chat">
-                <Button icon={<MessageSquare size={16} />} onClick={onChatClick} />
+                <Button icon={<MessageSquare size={16} />} onClick={() => setChatMode(true)} />
               </Tooltip>
               <Tooltip title="Delete">
                 <Button icon={<Trash2 size={16} />} danger />
@@ -94,10 +101,7 @@ const Agents: React.FC<AgentsProps> = ({ onChatClick }) => {
         onCancel={() => setIsModalOpen(false)}
         footer={null}
       >
-        <Form
-          layout="vertical"
-          onFinish={handleSubmit}
-        >
+        <Form layout="vertical" onFinish={handleSubmit}>
           <Form.Item
             label="Name"
             name="name"

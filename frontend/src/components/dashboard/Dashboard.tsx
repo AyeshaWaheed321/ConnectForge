@@ -2,15 +2,20 @@
 
 import React, { useEffect } from 'react';
 import { Row, Col } from 'antd';
-import StatusCard from './StatusCard';
-import ActivityOverview from './ActivityOverview';
-import SystemStatus from './SystemStatus';
 import './dashboard.scss';
 
-import {  useSelector } from 'react-redux';
+// Components
+import StatusCard from './StatusCard';
+import ActivityOverview from './ActivityOverview';
+
+// Redux
 import  useAppDispatch  from '../../hooks/useAppDispatch';
 
+// Actions
 import { getAction } from '../../store/actions/crudActions';
+
+// Localization
+import LOCALIZATION from '../../services/LocalizationService';
 
 const Dashboard: React.FC = () => {
 
@@ -23,7 +28,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="dashboard">
-      <h1>Dashboard</h1>
+      <h1> {LOCALIZATION.DASHBOARD } </h1>
       
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} md={6}>
@@ -65,13 +70,9 @@ const Dashboard: React.FC = () => {
       </Row>
       
       <Row gutter={[16, 16]} className="dashboard-sections">
-        <Col xs={24} lg={12}>
-          <h2 className="section-title">Activity Overview</h2>
+        <Col xs={24} lg={24}>
+          <h2 className="section-title">{LOCALIZATION.ACTIVITY_OVERVIEW}</h2>
           <ActivityOverview />
-        </Col>
-        <Col xs={24} lg={12}>
-          <h2 className="section-title">Status</h2>
-          <SystemStatus />
         </Col>
       </Row>
     </div>

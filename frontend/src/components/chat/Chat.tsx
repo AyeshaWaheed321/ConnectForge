@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Input, Button } from 'antd';
-import { Send, Mic } from 'lucide-react';
+import { Send, Mic, ArrowLeft } from 'lucide-react';
 import './chat.scss';
 
 interface Message {
@@ -10,7 +10,11 @@ interface Message {
   timestamp: string;
 }
 
-const Chat: React.FC = () => {
+interface ChatProps {
+  onBack: () => void;
+}
+
+const Chat: React.FC<ChatProps> = ({ onBack }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -23,19 +27,25 @@ const Chat: React.FC = () => {
 
   const handleSend = () => {
     if (inputValue.trim()) {
-      setMessages([...messages, {
-        id: messages.length + 1,
-        text: inputValue,
-        sender: 'You',
-        timestamp: 'Just now'
-      }]);
+      setMessages([
+        ...messages,
+        {
+          id: messages.length + 1,
+          text: inputValue,
+          sender: 'You',
+          timestamp: 'Just now'
+        }
+      ]);
       setInputValue('');
     }
   };
 
   return (
     <div className="chat-screen">
-      <div className="chat-header">
+      <div className="chat-header-bar">
+        <Button icon={<ArrowLeft size={16} />} onClick={onBack}>
+          Back to Agents
+        </Button>
         <h1>Chat with your Agents</h1>
         <Button type="primary" icon={<Mic size={16} />} className="voice-command">
           Voice Command

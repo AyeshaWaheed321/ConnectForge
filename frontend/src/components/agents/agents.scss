@@ -1,83 +1,133 @@
-@import '../../styles/variables.scss';
 
 .agents-screen {
-  padding: $spacing-lg;
+  padding: 24px;
+  background-color: #f8f9fb;
 
   .agents-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: $spacing-xl;
+    margin-bottom: 24px;
+
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #111827;
+      margin: 0;
+    }
 
     .configure-button {
-      background: $primary-light;
+      background-color: #8b5cf6;
+      color: white;
       border: none;
-      
-      &:hover {
-        background: lighten($primary-light, 5%);
-      }
+      border-radius: 8px;
+      font-weight: 500;
+      height: 40px;
+      padding: 0 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     }
   }
 
   .agents-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: $spacing-lg;
+    gap: 20px;
   }
 
   .agent-card {
-    border: 1px solid $border-color;
-    border-radius: $border-radius-lg;
-    transition: all 0.3s ease;
-
-    &:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 
     .agent-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: $spacing-sm;
+      margin-bottom: 8px;
 
       h3 {
+        font-size: 16px;
+        font-weight: 600;
         margin: 0;
-        font-size: $font-size-lg;
+      }
+
+      .ant-tag {
+        font-size: 12px;
+        padding: 0 10px;
+        border-radius: 16px;
+        background-color: #f0fff0;
+        color: #22c55e;
+        border: 1px solid #bbf7d0;
+      }
+
+      .ant-tag-default {
+        background-color: #f3f4f6;
+        color: #4b5563;
+        border: 1px solid #d1d5db;
       }
     }
 
     .provider {
-      color: $text-color-secondary;
-      text-transform: capitalize;
-      margin-bottom: $spacing-sm;
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 8px;
     }
 
     .description {
-      color: $text-color;
-      margin-bottom: $spacing-md;
-      line-height: 1.5;
+      font-size: 14px;
+      margin-bottom: 12px;
     }
 
     .tags {
-      margin-bottom: $spacing-lg;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
 
-      :global(.ant-tag) {
-        margin-bottom: $spacing-xs;
+      .ant-tag {
+        background-color: #e0e7ff;
+        border: none;
+        font-size: 12px;
+        color: #4338ca;
+        padding: 4px 12px;
+        border-radius: 9999px;
       }
     }
 
     .agent-actions {
       display: flex;
-      gap: $spacing-sm;
-      margin-top: auto;
+      justify-content: space-between;
+      gap: 8px;
 
-      button {
+      .ant-btn {
+        flex: 1;
+        font-size: 13px;
+        height: 38px;
         display: flex;
         align-items: center;
         justify-content: center;
-        
-        &:not(:first-child) {
-          padding: 4px 8px;
+        border-radius: 8px;
+        background-color: #f9fafb;
+        border: 1px solid #f3f4f6;
+        color: #1f2937;
+
+        &:hover {
+          background-color: #f3f4f6;
+          border-color: #e5e7eb;
+        }
+      }
+
+      .ant-btn-dangerous {
+        background-color: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+
+        &:hover {
+          background-color: #fee2e2;
         }
       }
     }

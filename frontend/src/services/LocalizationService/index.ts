@@ -1,20 +1,23 @@
-/* eslint-disable no-extend-native */
-import { LANGUAGE } from "constants/General";
+// LocalizationService/index.ts
+import { LANGUAGE } from "../../constants/LanguageConstants";
+import EN from "./en.json";
 
-// language files
-import EN from "../../locales/en.json";
+declare global {
+  interface String {
+    format(...args: string[]): string;
+  }
+}
 
 if (!String.prototype.format) {
-  String.prototype.format = function () {
-    let args = arguments;
+  String.prototype.format = function (...args: string[]) {
     return this.replace(/{(\d+)}/g, function (match, number) {
-      return typeof args[number] != "undefined" ? args[number] : match;
+      return typeof args[number] !== "undefined" ? args[number] : match;
     });
   };
 }
 
 const LocalizationWrapper = {
-  language: LANGUAGE.EN, // TODO: need to implement change language mechanism
+  language: LANGUAGE.EN,
   getLocalizationConstants: function () {
     switch (this.language) {
       case LANGUAGE.EN:

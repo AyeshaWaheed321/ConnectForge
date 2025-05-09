@@ -6,6 +6,9 @@ import Agents from '../agents/Agents';
 import Chat from '../chat/Chat';
 import './layout.scss';
 
+// constants
+import { ROUTES } from '../../constants/Routes';
+
 const { Content } = AntLayout;
 
 const Layout: React.FC = () => {
@@ -13,12 +16,13 @@ const Layout: React.FC = () => {
 
   const renderContent = () => {
     switch (currentPage) {
-      case 'dashboard':
+      case ROUTES.DASHBOARD:
         return <Dashboard />;
-      case 'agents':
-        return <Agents onChatClick={() => setCurrentPage('chat')} />;
-      case 'chat':
-        return <Chat />;
+      case ROUTES.AGENTS:
+        return <Agents />;
+      case ROUTES.CHAT:
+        return <Dashboard />;
+        // return <Chat />;
       default:
         return <Dashboard />;
     }

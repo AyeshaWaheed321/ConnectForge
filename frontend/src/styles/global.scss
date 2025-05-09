@@ -51,8 +51,12 @@ h3 {
 
 .layout-content {
   padding: $spacing-lg;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
+
 
 .progress-bar {
   height: 8px;
