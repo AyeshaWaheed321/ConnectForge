@@ -1,0 +1,47 @@
+// Brand Colors
+$primary-color: #433765;
+$primary-light: #554685;
+$primary-dark: #322751;
+
+// Status Colors
+$success-color: #52c41a;
+$warning-color: #faad14;
+$error-color: #f5222d;
+$info-color: #1890ff;
+
+// Neutral Colors
+$text-color: #000000d9;
+$text-color-secondary: #00000073;
+$border-color: #d9d9d9;
+$background-color: #f0f2f5;
+$component-background: #fff;
+
+// Typography
+$font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+$font-size-base: 14px;
+$font-size-sm: 12px;
+$font-size-lg: 16px;
+$font-size-xl: 20px;
+$font-size-xxl: 24px;
+
+// Layout
+$sidebar-width: 200px;
+$border-radius-base: 4px;
+$border-radius-sm: 2px;
+$border-radius-lg: 8px;
+
+// Spacing
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-xxl: 48px;
+
+// Breakpoints
+$screen-xs: 480px;
+$screen-sm: 576px;
+$screen-md: 768px;
+$screen-lg: 992px;
+$screen-xl: 1200px;
+$screen-xxl: 1600px;

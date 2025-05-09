@@ -1,0 +1,85 @@
+@import '../../styles/variables.scss';
+
+.agents-screen {
+  padding: $spacing-lg;
+
+  .agents-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-xl;
+
+    .configure-button {
+      background: $primary-light;
+      border: none;
+      
+      &:hover {
+        background: lighten($primary-light, 5%);
+      }
+    }
+  }
+
+  .agents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: $spacing-lg;
+  }
+
+  .agent-card {
+    border: 1px solid $border-color;
+    border-radius: $border-radius-lg;
+    transition: all 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .agent-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: $spacing-sm;
+
+      h3 {
+        margin: 0;
+        font-size: $font-size-lg;
+      }
+    }
+
+    .provider {
+      color: $text-color-secondary;
+      text-transform: capitalize;
+      margin-bottom: $spacing-sm;
+    }
+
+    .description {
+      color: $text-color;
+      margin-bottom: $spacing-md;
+      line-height: 1.5;
+    }
+
+    .tags {
+      margin-bottom: $spacing-lg;
+
+      :global(.ant-tag) {
+        margin-bottom: $spacing-xs;
+      }
+    }
+
+    .agent-actions {
+      display: flex;
+      gap: $spacing-sm;
+      margin-top: auto;
+
+      button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        
+        &:not(:first-child) {
+          padding: 4px 8px;
+        }
+      }
+    }
+  }
+}

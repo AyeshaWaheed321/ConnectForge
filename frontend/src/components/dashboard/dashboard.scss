@@ -1,0 +1,205 @@
+@import '../../styles/variables.scss';
+
+.dashboard {
+  h1 {
+    margin-bottom: $spacing-xl;
+  }
+  
+  .dashboard-sections {
+    margin-top: $spacing-xl;
+  }
+}
+
+.status-card {
+  padding: $spacing-lg;
+  border-radius: $border-radius-lg;
+  height: 100%;
+  
+  .status-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-md;
+    
+    .status-card-title {
+      color: $text-color-secondary;
+      font-size: $font-size-base;
+      margin: 0;
+    }
+    
+    .status-card-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      &.primary {
+        background-color: rgba($primary-color, 0.1);
+        color: $primary-color;
+      }
+      
+      &.info {
+        background-color: rgba($info-color, 0.1);
+        color: $info-color;
+      }
+      
+      &.success {
+        background-color: rgba($success-color, 0.1);
+        color: $success-color;
+      }
+      
+      &.error {
+        background-color: rgba($error-color, 0.1);
+        color: $error-color;
+      }
+    }
+  }
+  
+  .status-card-value {
+    font-size: $font-size-xxl;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.2;
+  }
+  
+  .status-card-percentage {
+    font-size: $font-size-sm;
+    margin-top: $spacing-xs;
+    
+    &.positive {
+      color: $success-color;
+    }
+    
+    &.negative {
+      color: $error-color;
+    }
+  }
+  
+  &.primary {
+    background-color: #fff;
+    border: 1px solid $border-color;
+  }
+  
+  &.success {
+    background-color: rgba($success-color, 0.1);
+  }
+  
+  &.error {
+    background-color: rgba($error-color, 0.1);
+  }
+  
+  &.info {
+    background-color: #fff;
+    border: 1px solid $border-color;
+  }
+}
+
+.activity-overview {
+  background: #fff;
+  border-radius: $border-radius-lg;
+  padding: $spacing-lg;
+  
+  .activity-item {
+    padding: $spacing-md 0;
+    border-bottom: 1px solid $border-color;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    .activity-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      
+      .activity-main {
+        flex: 1;
+      }
+      
+      .activity-title {
+        font-weight: 500;
+        margin-bottom: $spacing-xs;
+        display: flex;
+        align-items: center;
+        
+        .activity-icon {
+          margin-right: $spacing-sm;
+          color: $primary-color;
+        }
+      }
+      
+      .activity-meta {
+        font-size: $font-size-sm;
+        color: $text-color-secondary;
+        margin-bottom: 0;
+      }
+      
+      .activity-time {
+        color: $text-color-secondary;
+        font-size: $font-size-sm;
+      }
+    }
+  }
+}
+
+.system-status {
+  background: #fff;
+  border-radius: $border-radius-lg;
+  padding: $spacing-lg;
+  
+  .status-section {
+    margin-bottom: $spacing-xl;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    .status-section-title {
+      font-weight: 500;
+      margin-bottom: $spacing-md;
+    }
+  }
+  
+  .status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-md;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    .status-label {
+      margin: 0;
+    }
+    
+    .status-value {
+      font-weight: 500;
+    }
+  }
+  
+  .resource-item {
+    margin-bottom: $spacing-md;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    .resource-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: $spacing-xs;
+      
+      .resource-label {
+        margin: 0;
+      }
+      
+      .resource-value {
+        font-weight: 500;
+      }
+    }
+  }
+}
