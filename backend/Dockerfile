@@ -22,7 +22,7 @@ COPY . /app/
 
 # Generate a safe SECRET_KEY if not already in .env
 RUN if ! grep -q SECRET_KEY .env; then \
-      echo "SECRET_KEY=\"$(python -c \"import random; print(''.join(random.choices('abcdefghijklmnopqrstuvwxyz0123456789', k=50)))\")\"" >> .env ; \
+      echo "SECRET_KEY=\"$(python -c 'import random; print(''.join(random.choices('abcdefghijklmnopqrstuvwxyz0123456789', k=50)))')\"" >> .env; \
     fi
 
 # Expose port 8000 for the Django app
