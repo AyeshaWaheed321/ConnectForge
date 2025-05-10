@@ -3,7 +3,7 @@ import { Layout as AntLayout } from 'antd';
 import Sidebar from './Sidebar';
 import Dashboard from '../dashboard/Dashboard';
 import Agents from '../agents/Agents';
-import Chat from '../chat/Chat';
+import Chat from '../generalChat/Chat';
 import './layout.scss';
 
 // constants
@@ -21,8 +21,7 @@ const Layout: React.FC = () => {
       case ROUTES.AGENTS:
         return <Agents />;
       case ROUTES.CHAT:
-        return <Dashboard />;
-        // return <Chat />;
+        return <Chat />;
       default:
         return <Dashboard />;
     }
