@@ -9,12 +9,24 @@ import AgentModal from './AddAgentModal';
 
 // Localization
 import LOCALIZATION from '../../services/LocalizationService';
+import AgentCard from './AgentCard';
 
 const Agents: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [chatMode, setChatMode] = useState(false); // track chat screen
 
-  const agents = [
+  type AgentStatus = 'Connected' | 'Not Connected';
+
+  interface Agent {
+    id: number;
+    name: string;
+    provider: string;
+    description: string;
+    status: AgentStatus;
+    tags: string[];
+  }
+
+  const agents: Agent[] = [
     {
       id: 1,
       name: 'GitHub Agent',
@@ -67,34 +79,15 @@ const Agents: React.FC = () => {
 
       <div className="agents-grid">
         {agents.map((agent) => (
-          <Card key={agent.id} className="agent-card">
-            <div className="agent-header">
-              <h3>{agent.name}</h3>
-              <Tag color={agent.status === 'Connected' ? 'success' : 'default'}>
-                {agent.status}
-              </Tag>
-            </div>
-            <p className="provider">{agent.provider}</p>
-            <p className="description">{agent.description}</p>
-            <div className="tags">
-              {agent.tags.map((tag) => (
-                <Tag key={tag}>{tag}</Tag>
-              ))}
-            </div>
-            <div className="agent-actions">
-              {agent.status === 'Connected' ? (
-                <Button icon={<Pause size={16} />}>Pause</Button>
-              ) : (
-                <Button icon={<Play size={16} />}>Start</Button>
-              )}
-              <Tooltip title="Chat">
-                <Button icon={<MessageSquare size={16} />} onClick={() => setChatMode(true)} />
-              </Tooltip>
-              <Tooltip title="Delete">
-                <Button icon={<Trash2 size={16} />} danger />
-              </Tooltip>
-            </div>
-          </Card>
+          <AgentCard 
+            id={agent.id}
+            name={agent.name}
+            provider={agent.provider}
+            description={agent.description}
+            status={agent.status}
+            tags={agent.tags}
+            setChatMode={setChatMode}
+          />
         ))}
       </div>
 

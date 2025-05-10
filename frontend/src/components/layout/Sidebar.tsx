@@ -46,24 +46,24 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange }) => {
             label: 'Chat',
             onClick: () => onPageChange('chat'),
           },
-          {
-            key: 'tools',
-            icon: <Hammer size={16} />,
-            label: 'Tools',
-            onClick: () => onPageChange('tools'),
-          },
-          {
-            key: 'monitoring',
-            icon: <ActivitySquare size={16} />,
-            label: 'Monitoring',
-            onClick: () => onPageChange('monitoring'),
-          },
-          {
-            key: 'settings',
-            icon: <Settings size={16} />,
-            label: 'Settings',
-            onClick: () => onPageChange('settings'),
-          },
+          // {
+          //   key: 'tools',
+          //   icon: <Hammer size={16} />,
+          //   label: 'Tools',
+          //   onClick: () => onPageChange('tools'),
+          // },
+          // {
+          //   key: 'monitoring',
+          //   icon: <ActivitySquare size={16} />,
+          //   label: 'Monitoring',
+          //   onClick: () => onPageChange('monitoring'),
+          // },
+          // {
+          //   key: 'settings',
+          //   icon: <Settings size={16} />,
+          //   label: 'Settings',
+          //   onClick: () => onPageChange('settings'),
+          // },
         ]}
       />
       <div className="sidebar-footer">
