@@ -79,6 +79,7 @@ langgraph = "*"
 fastembed = "*"
 nest-asyncio = "*"
 langchain-openai = "*"
+django-cors-headers = "*"
 
 [dev-packages]
 
