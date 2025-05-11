@@ -1,135 +1,96 @@
+import asyncio
+import logging
+from venv import logger
 from rest_framework import serializers
-from .models import (
-    AgentConfig, AgentTag, AgentPersonality, AgentNode,
-    NodeConfiguration, ChatSettings, InitialMessage, ChatPrompt
-)
 
+from .utils import get_tools
+from .models import AgentConfig, LLMConfig, Tool
 
-class AgentTagSerializer(serializers.ModelSerializer):
+logger  = logging.getLogger(__name__)
+class LLMConfigSerializer(serializers.ModelSerializer):
     class Meta:
-        model = AgentTag
-        fields = ['tag']
+        model = LLMConfig
+        exclude = ('api_key',)
 
 
-class AgentPersonalitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AgentPersonality
-        fields = ['text']
+class PromptSerializer(serializers.Serializer):
+    system_message = serializers.CharField()
 
 
-class AgentNodeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AgentNode
-        fields = ['node_type']
-
-
-class NodeConfigurationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = NodeConfiguration
-        exclude = ['agent', 'node_type']
-
-
-class NodeConfigDictSerializer(serializers.Serializer):
-    def to_internal_value(self, data):
-        validated = {}
-        for node_type, config in data.items():
-            config_data = NodeConfigurationSerializer(data=config)
-            config_data.is_valid(raise_exception=True)
-            validated[node_type] = config_data.validated_data
-        return validated
-
-    def to_representation(self, obj):
-        return {
-            config.node_type: NodeConfigurationSerializer(config).data
-            for config in obj
-        }
-
-
-class InitialMessageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = InitialMessage
-        fields = ['message']
-
-    def to_internal_value(self, data):
-        if isinstance(data, str):
-            return {'message': data}
-        return super().to_internal_value(data)
-
-
-class ChatPromptSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ChatPrompt
-        fields = ['prompt']
-
-    def to_internal_value(self, data):
-        if isinstance(data, str):
-            return {'prompt': data}
-        return super().to_internal_value(data)
-
-
-class ChatSettingsSerializer(serializers.ModelSerializer):
-    initial_messages = InitialMessageSerializer(many=True)
-    chat_prompts = ChatPromptSerializer(many=True)
-
-    class Meta:
-        model = ChatSettings
-        fields = ['history_policy', 'history_length', 'initial_messages', 'chat_prompts']
-
-    def create(self, validated_data):
-        initial_messages = validated_data.pop('initial_messages', [])
-        chat_prompts = validated_data.pop('chat_prompts', [])
-        chat_settings = ChatSettings.objects.create(**validated_data)
-
-        for msg in initial_messages:
-            InitialMessage.objects.create(chat_settings=chat_settings, **msg)
-        for prompt in chat_prompts:
-            ChatPrompt.objects.create(chat_settings=chat_settings, **prompt)
-
-        return chat_settings
-
-
-class AgentConfigSerializer(serializers.ModelSerializer):
-    tags = serializers.ListField(child=serializers.CharField(), write_only=True)
-    personality = serializers.ListField(child=serializers.CharField(), write_only=True)
-    nodes = serializers.ListField(child=serializers.CharField(), write_only=True)
-    node_configurations = NodeConfigDictSerializer(write_only=True)
-    chat_settings = ChatSettingsSerializer(write_only=True)
-    options = serializers.DictField(required=False, write_only=True)
-
+class AgentConfigCoreSerializer(serializers.ModelSerializer):
+    llm = LLMConfigSerializer()
+    prompt = PromptSerializer(write_only=True)
+    tags = serializers.ListField(child=serializers.CharField(), default=list)
+    id = serializers.UUIDField(read_only=True)
     class Meta:
         model = AgentConfig
-        fields = [
-            'version', 'agent_id', 'name', 'description',
-            'tags', 'priority', 'personality', 'nodes',
-            'node_configurations', 'chat_settings', 'options'
-        ]
+        fields = ('id', 'agent_name', 'description', 'tags', 'llm', 'prompt')
+
+class AgentConfigWrapperSerializer(serializers.Serializer):
+    agentConfig = AgentConfigCoreSerializer()
+    mcpServers = serializers.JSONField()
 
     def create(self, validated_data):
-        tags = validated_data.pop('tags', [])
-        personalities = validated_data.pop('personality', [])
-        nodes = validated_data.pop('nodes', [])
-        node_configs = validated_data.pop('node_configurations', {})
-        chat_settings_data = validated_data.pop('chat_settings', {})
-        options = validated_data.pop('options', {})
+        agent_data = validated_data.get('agentConfig')
+        mcp_servers = validated_data.get('mcpServers')
 
-        max_steps = options.get('max_steps') if options else None
-        validated_data['max_steps'] = max_steps
+        llm_data = agent_data.pop('llm')
+        prompt_data = agent_data.pop('prompt')
 
-        agent = AgentConfig.objects.create(**validated_data)
+        llm_config = LLMConfig.objects.create(**llm_data)
 
-        AgentTag.objects.bulk_create([
-            AgentTag(agent=agent, tag=tag) for tag in tags
-        ])
-        AgentPersonality.objects.bulk_create([
-            AgentPersonality(agent=agent, text=text) for text in personalities
-        ])
-        AgentNode.objects.bulk_create([
-            AgentNode(agent=agent, node_type=node) for node in nodes
-        ])
-        for node_type, config_data in node_configs.items():
-            NodeConfiguration.objects.create(agent=agent, node_type=node_type, **config_data)
+        agent = AgentConfig.objects.create(
+            llm=llm_config,
+            system_message=prompt_data['system_message'],
+            mcp_server=mcp_servers,
+            **agent_data
+        )
 
-        chat_settings_data['agent'] = agent
-        ChatSettingsSerializer().create(chat_settings_data)
+        tools = asyncio.run(get_tools(mcp_servers))
+
+        for tool in tools:
+            Tool.objects.create(agent=agent, name=tool.name, description=tool.description)
 
         return agent
+
+    def update(self, instance, validated_data):
+        agent_data = validated_data.get('agentConfig', {})
+        new_mcp_servers = validated_data.get('mcpServers', instance.mcp_server)
+
+        llm_data = agent_data.pop('llm', {})
+        prompt_data = agent_data.pop('prompt', {})
+
+        # Update LLMConfig
+        for attr, value in llm_data.items():
+            setattr(instance.llm, attr, value)
+        instance.llm.save()
+
+        # Update AgentConfig fields
+        for attr, value in agent_data.items():
+            setattr(instance, attr, value)
+
+        if "system_message" in prompt_data:
+            instance.system_message = prompt_data["system_message"]
+
+        # Detect if mcp_server keys have changed
+        old_keys = set(instance.mcp_server.keys() if instance.mcp_server else [])
+        new_keys = set(new_mcp_servers.keys() if new_mcp_servers else [])
+        mcp_keys_changed = old_keys != new_keys
+
+        instance.mcp_server = new_mcp_servers
+        instance.save()
+
+        # Regenerate tools only if keys changed
+        if mcp_keys_changed:
+            Tool.objects.filter(agent=instance).delete()
+            tools = asyncio.run(get_tools(new_mcp_servers))
+            for tool in tools:
+                Tool.objects.create(agent=instance, name=tool.name, description=tool.description)
+
+        return instance
+
+
+class ToolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tool
+        fields = ['name', 'description']
