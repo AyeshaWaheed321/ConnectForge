@@ -36,8 +36,8 @@ ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS")
 
 # CORS Settings
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug
-CORS_ORIGIN_ALLOW_ALL = env('CORS_ORIGIN_ALLOW_ALL', default=False)
-CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
+CORS_ORIGIN_ALLOW_ALL = env('CORS_ORIGIN_ALLOW_ALL', default=True)
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=['localhost:3000'])
 CORS_ORIGIN_WHITELIST = env.list(
         "CORS_ORIGIN_WHITELIST", default=["http://localhost:3000"]
     )
