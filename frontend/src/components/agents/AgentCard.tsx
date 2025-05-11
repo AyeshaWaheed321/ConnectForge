@@ -95,14 +95,14 @@ export const AgentCard: React.FC<AgentProps> = ({ id, name, provider, descriptio
             className="action-button"
           />
         </Tooltip>
-        <Tooltip title="Agent settings">
+        {/* <Tooltip title="Agent settings">
           <Button 
             type="text" 
             icon={<Settings size={18} />} 
             onClick={handleOpenConfigModal}
             className="action-button"
           />
-        </Tooltip>
+        </Tooltip> */}
         <Tooltip title="Delete agent">
           <Button 
             type="text" 

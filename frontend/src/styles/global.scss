@@ -99,3 +99,47 @@ h3 {
     color: $success-color;
   }
 }
+
+// App Loader
+.app-loader {
+    .ant-spin {
+        position: fixed;
+        z-index: 1052;
+        background: rgba(255, 255, 255, 0.7);
+        display: flex;
+        width: 100vw;
+        height: 100vh;
+        top: 0;
+        left: 0;
+
+        display: -webkit-box;
+        display: -moz-box;
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .ant-spin-dot {
+        font-size: 1.5rem; // 24px
+        width: 2.125rem;   // 34px
+        height: 2.125rem;  // 34px
+
+        .ant-spin-dot-item {
+            background-color: $primary-light;
+            width: 0.875rem;   // 14px
+            height: 0.875rem;  // 14px
+        }
+    }
+}
+
+.ant-spin-nested-loading {
+    >div {
+        >.ant-spin.app-loader {
+            .ant-spin-dot {
+                position: fixed;
+            }
+        }
+    }
+}
