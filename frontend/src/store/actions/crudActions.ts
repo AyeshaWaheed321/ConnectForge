@@ -10,7 +10,7 @@ export const getAction = (url: string, data: any, key: string) => {
   return async (dispatch: any) => {
     try {
       dispatch(handleAction(CRUD_ACTION.GET_REQUEST, { key, params: data?.params }));
-      console.log("action dispatc");
+
       const response = await service.getService(url, data);
       
       if (response) {

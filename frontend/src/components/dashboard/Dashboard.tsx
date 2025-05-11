@@ -22,7 +22,7 @@ const Dashboard: React.FC = () => {
   const dispatch = useAppDispatch();
   
     useEffect(() => {
-    dispatch(getAction("/api/dashboard", {}, "dashboard"));
+    // dispatch(getAction("/api/dashboard", {}, "dashboard"));
   }, []);
 
 
