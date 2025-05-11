@@ -50,7 +50,8 @@ class AgentConfigViewSet(viewsets.ModelViewSet):
         data = [{
             "id": agent.id,
             "agent_name": agent.agent_name,
-            "description": agent.description
+            "description": agent.description,
+            "tool_names": [tool.name for tool in agent.tools.all()],
         } for agent in queryset]
         return Response(data)
 
