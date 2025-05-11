@@ -1,26 +1,30 @@
-version: "3.9"
+version: '3.9'
 
 services:
   db:
     image: postgres:15
+    container_name: postgres_db
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
     environment:
       POSTGRES_DB: agentdock
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password>0
+      POSTGRES_PASSWORD: 'password>0'
     ports:
       - "5432:5432"
 
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
-    volumes:
-      - .:/code
+    container_name: django_web
+    env_file:
+      - .env
     ports:
       - "8000:8000"
     depends_on:
       - db
-    env_file:
-      - .env
-    environment:
-      DATABASE_URL: postgres://postgres:password>0@db:5432/agentdock
-      
+    volumes:
+      - .:/app
+
+volumes:
+  postgres_data:
