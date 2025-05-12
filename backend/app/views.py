@@ -323,6 +323,7 @@ def chat(request):
         return Response({"error": "Something went wrong, please try again."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class ChatHistoryPagination(PageNumberPagination):
+    page_size = 20
     page_size_query_param = 'page_size'
     max_page_size = 100
 
@@ -387,10 +388,13 @@ def chat_history(request):
     except AgentConfig.DoesNotExist:
         return Response({"error": f"Agent with id {agent_id} not found."}, status=status.HTTP_404_NOT_FOUND)
 
-    queryset = ChatHistory.objects.filter(agent=agent).order_by("-timestamp")
+    queryset = ChatHistory.objects.filter(agent=agent).order_by("-timestamp", "role_order")
 
     paginator = ChatHistoryPagination()
     paginated_qs = paginator.paginate_queryset(queryset, request)
+
+    paginated_qs = paginated_qs or []
+
     serialized = [
         {
             "message": entry.message,

@@ -88,8 +88,8 @@ def get_chat_history(agent, n_history_messages):
 
 @sync_to_async
 def save_messages(agent, user_message, ai_message):
-    ChatHistory.objects.create(agent=agent, message=user_message, role="human")
-    ChatHistory.objects.create(agent=agent, message=ai_message, role="ai")
+    ChatHistory.objects.create(agent=agent, message=user_message, role="human", role_order=0)
+    ChatHistory.objects.create(agent=agent, message=ai_message, role="ai", role_order=1)
     logger.info(f"Saved messages for agent {agent.agent_name}: User: {user_message}, AI: {ai_message}")
 
 async def run_client(query: str, agent: AgentConfig):

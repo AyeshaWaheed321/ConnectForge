@@ -39,6 +39,7 @@ class ChatHistory(models.Model):
     message = models.TextField()
     role = models.CharField(max_length=10, choices=[('human', 'Human'), ('ai', 'AI')])
     timestamp = models.DateTimeField(auto_now_add=True)
+    role_order = models.IntegerField(choices=[(0, 'Human'), (1, 'AI')], default=0)
 
     def __str__(self):
         return f"Message from {self.role.capitalize()} at {self.timestamp}"
