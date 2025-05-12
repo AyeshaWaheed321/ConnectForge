@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Modal, Form, Input, Card, Tag, Tooltip } from "antd";
+import { Button, message} from "antd";
 import { MessageSquare, Trash2, Pause, Play, ArrowLeft } from "lucide-react";
 import "./agents.scss";
 
@@ -10,7 +10,7 @@ import AgentCard from "./AgentCard";
 import Loading from "../common/Loader";
 
 // Constants
-import URLS from "../../constants/URLConstants";
+import URLS from "../../constants/UrlConstants";
 import { REDUX_STATES } from "../../constants/ReduxStates";
 
 // Redux
@@ -18,7 +18,7 @@ import useAppDispatch from "../../hooks/useAppDispatch";
 import { useSelector } from "react-redux";
 
 // Actions
-import { getAction } from "../../store/actions/crudActions";
+import { getAction, postAction, deleteAction } from "../../store/actions/crudActions";
 
 // Localization
 import LOCALIZATION from "../../services/LocalizationService";
@@ -35,66 +35,85 @@ const Agents: React.FC = () => {
     [AGENTS + ERROR]: agentsListError = false,
   } = useSelector((state: any) => state?.crud);
 
-  console.log("agentsList", agentsList);
+ 
   // Local State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [chatMode, setChatMode] = useState(false); // track chat screen
+  const [chatMode, setChatMode] = useState(""); // track chat screen
 
   type AgentStatus = "Connected" | "Not Connected";
 
   const getAgentList = () => {
-    dispatch(getAction(URLS.GET_AGENTS, {}, AGENTS));
+    dispatch(getAction(URLS.AGENTS, {}, AGENTS));
   };
 
   useEffect(() => {
     !agentsListLoading && getAgentList();
-  }, [agentsList]);
+  }, []);
 
   interface Agent {
-    id: number;
-    name: string;
-    provider: string;
+    id: string;
+    agent_name: string;
+    // provider: string;
     description: string;
     status: AgentStatus;
-    tags: string[];
+    tool_names: string[];
   }
 
-  const agents: Agent[] = [
-    {
-      id: 1,
-      name: "GitHub Agent",
-      provider: "github",
-      description:
-        "Monitors GitHub pull requests and provides summaries and analysis",
-      status: "Connected",
-      tags: ["github", "analyze", "summarize"],
-    },
-    {
-      id: 2,
-      name: "Slack Notifier",
-      provider: "slack",
-      description: "Sends notifications to Slack channels based on events",
-      status: "Connected",
-      tags: ["slack"],
-    },
-    {
-      id: 3,
-      name: "Jira Ticket Manager",
-      provider: "jira",
-      description:
-        "Creates and updates Jira tickets based on natural language requests",
-      status: "Not Connected",
-      tags: ["jira"],
-    },
-  ];
+  // const agents: Agent[] = [
+  //   {
+  //     id: 1,
+  //     name: "GitHub Agent",
+  //     provider: "github",
+  //     description:
+  //       "Monitors GitHub pull requests and provides summaries and analysis",
+  //     status: "Connected",
+  //     tags: ["github", "analyze", "summarize"],
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "Slack Notifier",
+  //     provider: "slack",
+  //     description: "Sends notifications to Slack channels based on events",
+  //     status: "Connected",
+  //     tags: ["slack"],
+  //   },
+  //   {
+  //     id: 3,
+  //     name: "Jira Ticket Manager",
+  //     provider: "jira",
+  //     description:
+  //       "Creates and updates Jira tickets based on natural language requests",
+  //     status: "Not Connected",
+  //     tags: ["jira"],
+  //   },
+  // ];
 
   const handleSubmit = (values: any) => {
-    console.log("Form values:", values);
-    setIsModalOpen(false);
+    dispatch(postAction(URLS.AGENTS, values, null, AGENTS)).then(() => {
+      message.success("Agent is created successfully");
+      getAgentList();
+      setIsModalOpen(false);
+    },
+    (error: any) => {
+      setIsModalOpen(false);
+      message.error("Error creating agent. Please try again.");
+      console.error("Error creating agent:", error);
+    }
+  );
   };
 
-  if (chatMode) {
-    return <Chat onBack={() => setChatMode(false)} />;
+    const handleDelete = (id: string) => {
+    dispatch(deleteAction(URLS.DELETE_AGENT.replace("$id", id), null, null, AGENTS)).then(() => {
+      message.success("Agent is deleted successfully");
+      getAgentList();
+    },
+    (error: any) => {
+      message.error("Error in deleting agent. Please try again.");
+    }
+  );
+  };
+  if (chatMode !== "") {
+    return <Chat onBack={() => setChatMode("")} chatMode={chatMode}/>;
   }
 
   return (
@@ -112,15 +131,16 @@ const Agents: React.FC = () => {
       </div>
 
       <div className="agents-grid">
-        {agents.map((agent) => (
+        {!!agentsList?.data && agentsList?.data?.map((agent: Agent) => (
           <AgentCard
             id={agent.id}
-            name={agent.name}
-            provider={agent.provider}
+            name={agent.agent_name}
+            // provider={agent.provider}
             description={agent.description}
-            status={agent.status}
-            tags={agent.tags}
+            status={"Connected"}
+            tags={agent.tool_names}
             setChatMode={setChatMode}
+            handleDelete={handleDelete}
           />
         ))}
       </div>
@@ -128,7 +148,7 @@ const Agents: React.FC = () => {
       <AgentModal
         visible={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={() => {}}
+        onSubmit={(data: any) => handleSubmit(data)}
       />
 
       {agentsListError && (
