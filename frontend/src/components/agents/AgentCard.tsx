@@ -1,9 +1,15 @@
-import React, { useState, Dispatch, SetStateAction } from "react";
-import { Card, Button, Tooltip, Modal } from "antd";
+import React, { useState } from "react";
+import { Card, Button, Tooltip, Modal, message } from "antd";
 import { MessageCircle, Settings, Trash, Pause, Play } from "lucide-react";
-import AgentConfigModal, { AgentConfigFormValues } from "./AgentConfigModal";
+import { useNavigate } from "react-router-dom";
+import { getAction, patchAction } from "../../store/actions/crudActions";
+import useAppDispatch from "../../hooks/useAppDispatch";
+import URLS from "../../constants/UrlConstants";
+import { REDUX_STATES } from "../../constants/ReduxStates";
+import { useSelector } from "react-redux";
+
 import "./AgentCard.css";
-import { useNavigate } from "react-router-dom"; // Import for navigation
+import AgentModal from "./AddAgentModal";
 
 export interface AgentProps {
   id: string;
@@ -18,6 +24,8 @@ const TAG_ROW_LIMIT = 2;
 const TAGS_PER_ROW_ESTIMATE = 2;
 const visibleTagCount = TAG_ROW_LIMIT * TAGS_PER_ROW_ESTIMATE;
 
+const { FETCH_AGENT_DETAILS, RESPONSE, LOADING, ERROR, AGENTS } =
+  REDUX_STATES || {};
 export const AgentCard: React.FC<AgentProps> = ({
   id,
   name,
@@ -26,25 +34,51 @@ export const AgentCard: React.FC<AgentProps> = ({
   tags,
   handleDelete,
 }) => {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [configModalVisible, setConfigModalVisible] = useState(false);
-  const [deleteModalVisible, setDeleteModalVisible] = useState(false); // State for delete confirmation
-  const navigate = useNavigate(); // Initialize navigation
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
-  const handleSubmitAgent = (agentData: any) => {
-    console.log("Updated agent data:", agentData);
-    setModalVisible(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+
+  const {
+    [FETCH_AGENT_DETAILS + RESPONSE]: agentData = {},
+    [FETCH_AGENT_DETAILS + LOADING]: agentDataLoading = false,
+    [FETCH_AGENT_DETAILS + ERROR]: agentDataError = false,
+  } = useSelector((state: any) => state?.crud);
+
+  const handleEditClick = () => {
+    dispatch(
+      getAction(URLS.AGENT_BY_ID.replace(":id", id), {}, FETCH_AGENT_DETAILS)
+    );
+    setEditModalVisible(true);
   };
 
-  const handleSubmitConfig = (values: AgentConfigFormValues) => {
-    console.log("Config values:", values);
-    setConfigModalVisible(false);
+  const handleEditSubmit = (agentJson: any) => {
+    dispatch(
+      patchAction(
+        URLS.AGENT_BY_ID.replace(":id", id),
+        agentJson,
+        null,
+        "PATCH_AGENT"
+      )
+    ).then(() => {
+      if (agentDataError) {
+        message.error("Failed to update agent");
+      } else {
+        message.success("Agent updated successfully");
+        // ✅ Refresh agents list
+        dispatch(getAction(URLS.AGENTS, {}, AGENTS));
+      }
+    });
+
+    setEditModalVisible(false);
   };
+
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
   const remainingCount = tags.length - visibleTagCount;
 
   const handleChatClick = () => {
-    navigate(`/chat/${id}`); // Navigate to chat route with agent ID
+    navigate(`/chat/${id}`);
   };
 
   const showDeleteModal = () => {
@@ -53,11 +87,11 @@ export const AgentCard: React.FC<AgentProps> = ({
 
   const handleDeleteConfirm = () => {
     handleDelete(id);
-    setDeleteModalVisible(false); // Close modal after deletion
+    setDeleteModalVisible(false);
   };
 
   const handleDeleteCancel = () => {
-    setDeleteModalVisible(false); // Close modal if user cancels
+    setDeleteModalVisible(false);
   };
 
   return (
@@ -76,7 +110,6 @@ export const AgentCard: React.FC<AgentProps> = ({
 
         <p className="agent-description">{description}</p>
 
-        {/* Tools Heading */}
         {tags.length > 0 && <p className="agent-tools-heading">Tools</p>}
 
         <div className="agent-tags-wrapper">
@@ -93,23 +126,6 @@ export const AgentCard: React.FC<AgentProps> = ({
         </div>
 
         <div className="agent-actions">
-          {status === "Connected" ? (
-            <Tooltip title="Pause agent">
-              <Button
-                type="text"
-                icon={<Pause size={18} />}
-                className="action-button"
-              />
-            </Tooltip>
-          ) : (
-            <Tooltip title="Start agent">
-              <Button
-                type="text"
-                icon={<Play size={18} />}
-                className="action-button"
-              />
-            </Tooltip>
-          )}
           <Tooltip title="Chat with agent">
             <Button
               type="text"
@@ -118,16 +134,39 @@ export const AgentCard: React.FC<AgentProps> = ({
               className="action-button"
             />
           </Tooltip>
+          <Tooltip title="Edit agent">
+            <Button
+              type="text"
+              icon={<Settings size={18} />}
+              onClick={handleEditClick}
+              className="action-button"
+            />
+          </Tooltip>
+
           <Tooltip title="Delete agent">
             <Button
               type="text"
               icon={<Trash size={18} />}
-              onClick={showDeleteModal} // Show delete confirmation on click
+              onClick={showDeleteModal}
               className="action-button delete-button"
             />
           </Tooltip>
         </div>
       </Card>
+
+      {/* Agent Edit Modal */}
+      <AgentModal
+        visible={editModalVisible}
+        onClose={() => setEditModalVisible(false)}
+        onSubmit={handleEditSubmit}
+        key={id}
+        defaultValue={{
+          agentConfig: agentData?.data?.agentConfig,
+          mcpServers: agentData?.data?.mcpServers,
+        }}
+        modalTitle={`Edit Agent - ${name}`}
+        loading={agentDataLoading}
+      />
 
       {/* Delete Confirmation Modal */}
       <Modal
@@ -142,24 +181,12 @@ export const AgentCard: React.FC<AgentProps> = ({
         onCancel={handleDeleteCancel}
         okText="Delete"
         cancelText="Cancel"
-        okButtonProps={{
-          danger: true,
-        }}
+        okButtonProps={{ danger: true }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            marginTop: "20px",
-            marginBottom: "20px",
-          }}
-        >
-          <p>
-            Deleting this agent will permanently remove it along with all
-            associated data, including chat history. This action cannot be
-            undone.
-          </p>
-        </div>
+        <p>
+          Deleting this agent will permanently remove it along with all
+          associated data, including chat history. This action cannot be undone.
+        </p>
       </Modal>
     </>
   );

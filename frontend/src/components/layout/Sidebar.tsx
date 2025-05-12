@@ -22,7 +22,7 @@ const Sidebar: React.FC<SidebarProps> = () => {
     <Sider width={200} theme="dark" className="app-sidebar">
       <div className="logo">
         <Users size={24} color="#fff" />
-        <span className="logo-text">AgentDock</span>
+        <span className="logo-text">ConnectForge</span>
       </div>
       <Menu
         mode="inline"
@@ -51,7 +51,7 @@ const Sidebar: React.FC<SidebarProps> = () => {
           Chat
         </Menu.Item>
       </Menu>
-      <div className="sidebar-footer">AgentDock v1.0.0</div>
+      <div className="sidebar-footer">ConnectForge v1.0.0</div>
     </Sider>
   );
 };

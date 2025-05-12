@@ -1,5 +1,5 @@
-import { CRUD_ACTION } from '../../constants/ActionKeys';
-import service from '../../services/Api/Service';
+import { CRUD_ACTION } from "../../constants/ActionKeys";
+import service from "../../services/Api/Service";
 
 export const handleAction = (type: string, payload?: any) => ({
   type,
@@ -9,17 +9,19 @@ export const handleAction = (type: string, payload?: any) => ({
 export const getAction = (url: string, data: any, key: string) => {
   return async (dispatch: any) => {
     try {
-      console.log('getAction', url, data);
-      dispatch(handleAction(CRUD_ACTION.GET_REQUEST, { key, params: data?.params }));
+      console.log("getAction", url, data);
+      dispatch(
+        handleAction(CRUD_ACTION.GET_REQUEST, { key, params: data?.params })
+      );
 
       const response = await service.getService(url, data);
-      
+
       if (response) {
         dispatch(handleAction(CRUD_ACTION.GET_SUCCESS, { key, response }));
       } else {
         dispatch(handleAction(CRUD_ACTION.GET_FAILURE));
       }
-      
+
       return response;
     } catch (error) {
       dispatch(handleAction(CRUD_ACTION.GET_FAILURE, { key, error }));
@@ -65,6 +67,27 @@ export const deleteAction = (url: string, data: any, opt: any, key: string) => {
       return response;
     } catch (error) {
       dispatch(handleAction(CRUD_ACTION.DELETE_FAILURE, { key, error }));
+      throw error;
+    }
+  };
+};
+
+export const patchAction = (url: string, data: any, opt: any, key: string) => {
+  return async (dispatch: any) => {
+    try {
+      dispatch(handleAction(CRUD_ACTION.PATCH_REQUEST, { key }));
+
+      const response = await service.patchService(url, data, opt);
+
+      if (response) {
+        dispatch(handleAction(CRUD_ACTION.PATCH_SUCCESS, { key, response }));
+      } else {
+        dispatch(handleAction(CRUD_ACTION.PATCH_FAILURE, { key }));
+      }
+
+      return response;
+    } catch (error) {
+      dispatch(handleAction(CRUD_ACTION.PATCH_FAILURE, { key, error }));
       throw error;
     }
   };

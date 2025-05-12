@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Button, message } from "antd";
-import { MessageSquare, Trash2, Pause, Play, ArrowLeft } from "lucide-react";
 import "./agents.scss";
 
 // Components
-import Chat from "../chat/Chat";
 import AgentModal from "./AddAgentModal";
 import AgentCard from "./AgentCard";
 import Loading from "../common/Loader";
@@ -41,22 +39,22 @@ const Agents: React.FC = () => {
 
   // Local State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [chatMode, setChatMode] = useState(""); // track chat screen
 
   type AgentStatus = "Connected" | "Not Connected";
 
   const getAgentList = () => {
-    dispatch(getAction(URLS.AGENTS, {}, AGENTS));
+    return dispatch(getAction(URLS.AGENTS, {}, AGENTS));
   };
 
   useEffect(() => {
-    !agentsListLoading && getAgentList();
+    if (!agentsListLoading && !agentsList?.data) {
+      getAgentList();
+    }
   }, []);
 
   interface Agent {
     id: string;
     agent_name: string;
-    // provider: string;
     description: string;
     status: AgentStatus;
     tool_names: string[];
@@ -66,8 +64,9 @@ const Agents: React.FC = () => {
     dispatch(postAction(URLS.AGENTS, values, null, AGENTS)).then(
       () => {
         message.success("Agent is created successfully");
-        getAgentList();
-        setIsModalOpen(false);
+        getAgentList().then(() => {
+          setIsModalOpen(false);
+        });
       },
       (error: any) => {
         setIsModalOpen(false);
@@ -79,7 +78,7 @@ const Agents: React.FC = () => {
 
   const handleDelete = (id: string) => {
     dispatch(
-      deleteAction(URLS.DELETE_AGENT.replace(":id", id), null, null, AGENTS)
+      deleteAction(URLS.AGENT_BY_ID.replace(":id", id), null, null, AGENTS)
     ).then(
       () => {
         message.success("Agent is deleted successfully");
@@ -93,7 +92,8 @@ const Agents: React.FC = () => {
 
   return (
     <div className="agents-screen">
-      {!!agentsListLoading && <Loading />}
+      {agentsListLoading && <Loading />}
+
       <div className="agents-header">
         <h1>{LOCALIZATION.AGENTS}</h1>
         <Button
@@ -106,25 +106,27 @@ const Agents: React.FC = () => {
       </div>
 
       <div className="agents-grid">
-        {!!agentsList?.data &&
-          agentsList?.data?.map((agent: Agent) => (
+        {Array.isArray(agentsList?.data) && agentsList.data.length > 0 ? (
+          agentsList.data.map((agent: Agent) => (
             <AgentCard
               id={agent.id}
               key={agent.id}
               name={agent.agent_name}
-              // provider={agent.provider}
               description={agent.description}
-              status={"Connected"}
+              status="Connected"
               tags={agent.tool_names}
               handleDelete={handleDelete}
             />
-          ))}
+          ))
+        ) : !agentsListLoading ? (
+          <p className="empty-state">No agents available.</p>
+        ) : null}
       </div>
 
       <AgentModal
         visible={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={(data: any) => handleSubmit(data)}
+        onSubmit={handleSubmit}
       />
 
       {agentsListError && (
