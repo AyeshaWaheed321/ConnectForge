@@ -1,9 +1,9 @@
 # AgentDoc
 
-# 🧠 ConnectForge (MCP-Compatible Agent)
+# 🧠 ConnectForge
 
-An AI-powered assistant that connects seamlessly with the **Model Context Protocol (MCP)** ecosystem.  
-It allows connection with multiple MCP servers like GitHub, math computations, file access, and much more using a flexible, **multi-agent architecture**.
+A powerful hub for interacting with tools and services through a conversational **LLM interface**, seamlessly integrated with the **Model Context Protocol (MCP)** ecosystem.  
+ConnectForge enables you to chat naturally while executing tasks via connected MCP servers—such as GitHub automation, math computations, file operations, web search, and more—through a modular and extensible **multi-agent architecture**.
 
 ## 🚀 Key Features
 
@@ -30,9 +30,10 @@ It allows connection with multiple MCP servers like GitHub, math computations, f
 | **Agent Core**        | Python (`mcp-use` library) |
 | **LLM Orchestration** | LangChain                  |
 
-## 🧩 Agent Configuration
+# 🧩 Agent Configuration
 
-The agent is configured using a JSON block similar to:
+The agent is configured using a JSON block similar to the example below.  
+You can also view the full configuration example in [`sample_config.txt`](./sample_config.txt) in the project root with detailed description of each key.
 
 ```json
 {
