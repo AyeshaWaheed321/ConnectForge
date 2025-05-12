@@ -1,6 +1,8 @@
+from argparse import Action
 import asyncio
 import logging
 from math import log
+import time
 from django.conf import settings
 from langchain.agents import  AgentExecutor, create_tool_calling_agent
 from langchain_groq import ChatGroq
@@ -8,9 +10,9 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import SystemMessage
 
-from ..models import AgentConfig, ChatHistory
+from ..models import ActivityEvents, AgentConfig, ChatHistory
 
-from ..utils import get_tools
+from ..utils import get_tools, log_activity, log_activity_async, update_metrics
 
 from asgiref.sync import sync_to_async
 
@@ -81,68 +83,99 @@ def get_llm_from_config(agent_config: dict):
     return llm_class(**llm_kwargs)
 
 @sync_to_async
-def get_chat_history(agent_id, n_history_messages):
-    agent = AgentConfig.objects.get(id=agent_id)
+def get_chat_history(agent, n_history_messages):
     return list(ChatHistory.objects.filter(agent=agent).order_by('-timestamp')[:n_history_messages])
 
 @sync_to_async
-def save_messages(agent_id, user_message, ai_message):
-    agent = AgentConfig.objects.get(id=agent_id)
+def save_messages(agent, user_message, ai_message):
     ChatHistory.objects.create(agent=agent, message=user_message, role="human")
     ChatHistory.objects.create(agent=agent, message=ai_message, role="ai")
-    logger.info(f"Saved messages for agent {agent_id}: User: {user_message}, AI: {ai_message}")
+    logger.info(f"Saved messages for agent {agent.agent_name}: User: {user_message}, AI: {ai_message}")
 
-async def run_client(query: str, mcp_servers: dict, agent_config: dict):
+async def run_client(query: str, agent: AgentConfig):
+    start_time = time.time()
+    duration_ms = 0
 
-    agent_id = agent_config.get("agent_id")
+    agent_id = agent.id
+    agent_name = agent.agent_name
+    mcp_servers = agent.mcp_server or {}
+    llm_config = agent.llm
 
-    logger.info(f"Initiating agent execution with agent: {agent_id}")
+    agent_config = {
+        "provider": llm_config.provider,
+        "model": llm_config.model,
+        "api_key": llm_config.api_key,
+        "max_tokens": llm_config.max_tokens,
+        "temperature": llm_config.temperature,
+        "timeout": llm_config.timeout,
+        "max_retries": llm_config.max_retries,
+        "system_message": agent.system_message,
+        "n_history_messages": agent.n_history_messages,
+    }
 
-    llm = get_llm_from_config(agent_config)
-    tools = await get_tools(mcp_servers)
+    await log_activity_async(
+        agent=agent,
+        action=ActivityEvents.CHAT_STARTED,
+        description="Chat started with agent",
+        metadata={"query": query}
+    )
 
     try:
-        history = await get_chat_history(agent_id, n_history_messages=agent_config.get("n_history_messages", 4))
-        chat_history = [(msg.role, msg.message) for msg in history] if history else []
+        llm = get_llm_from_config(agent_config)
+        tools = await get_tools(mcp_servers)
 
-        logger.info(f"Retrieved chat history for agent {agent_id}: {chat_history}")
+        try:
+            history = await get_chat_history(agent, n_history_messages=agent_config.get("n_history_messages", 4))
+            chat_history = [(msg.role, msg.message) for msg in history] if history else []
+            logger.info(f"[{agent_name}] Retrieved chat history: {chat_history}")
+        except Exception as e:
+            logger.exception(f"[{agent_name}] Error retrieving chat history")
+            chat_history = []
 
-    except Exception as e:
-        logger.error(f"Error retrieving history for agent {agent_id}: {str(e)}")
-        chat_history = []
+        prompt = ChatPromptTemplate.from_messages([
+            SystemMessage(content=agent_config.get("system_message", DEFAULT_TEMPLATE)),
+            MessagesPlaceholder(variable_name="chat_history"),
+            ("human", "{input}"),
+            MessagesPlaceholder(variable_name="agent_scratchpad", optional=True),
+        ])
 
-    prompt = ChatPromptTemplate.from_messages([
-        SystemMessage(content=agent_config.get("system_message", DEFAULT_TEMPLATE)),
-        MessagesPlaceholder(variable_name="chat_history"),
-        ("human", "{input}"),
-        MessagesPlaceholder(variable_name="agent_scratchpad", optional=True),
-    ])
+        agent_instance = create_tool_calling_agent(llm=llm, tools=tools, prompt=prompt)
+        executor = AgentExecutor(agent=agent_instance, tools=tools, verbose=True, handle_parsing_errors=True, return_intermediate_steps=False)
 
-    agent = create_tool_calling_agent(llm=llm, tools=tools, prompt=prompt)
-
-    executor = AgentExecutor(agent=agent, tools=tools, verbose=True, handle_parsing_errors=True, return_intermediate_steps=False)
-
-    logger.info(f"Executing agent with query: {query}")
-    
-    try:
+        logger.info(f"[{agent_name}] Executing agent query: {query}")
         result = await executor.ainvoke({"input": query, "chat_history": chat_history})
-        
-        await save_messages(agent_id, query, result["output"])
-        return result
-    except Exception as e:
-        logger.error(f"Error during agent execution: {str(e)}")
-        return {"error": str(e)}
 
-def agent_executor(query, mcp_servers, agent_config):
-    try:
-        result = asyncio.run(run_client(query, mcp_servers, agent_config))
+        await save_messages(agent, query, result["output"])
+
         return result
+
+    except Exception as e:
+        duration_ms = int((time.time() - start_time) * 1000)
+        error_msg = str(e)
+
+        logger.exception(f"[{agent_name}] Error during agent execution")
+
+        await log_activity_async(
+            agent=agent,
+            action=ActivityEvents.ERROR_OCCURRED,
+            description="An error occurred during agent execution",
+            metadata={"error": error_msg, "duration_ms": duration_ms}
+        )
+        update_metrics(agent, success=False, response_time_ms=duration_ms)
+
+        return {"error": error_msg}
+
+def agent_executor(query, agent):
+    try:
+        return asyncio.run(run_client(query, agent))
     except RuntimeError as e:
         if "event loop is closed" in str(e) or "cannot be called from a running event loop" in str(e):
             import nest_asyncio
             nest_asyncio.apply()
             loop = asyncio.get_event_loop()
-            return loop.run_until_complete(run_client(query, mcp_servers, agent_config))
+            return loop.run_until_complete(run_client(query, agent))
+        logger.exception("Runtime error in agent_executor")
         return {"error": str(e)}
     except Exception as e:
+        logger.exception("Unexpected error in agent_executor")
         return {"error": str(e)}

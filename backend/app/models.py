@@ -42,3 +42,36 @@ class ChatHistory(models.Model):
 
     def __str__(self):
         return f"Message from {self.role.capitalize()} at {self.timestamp}"
+
+class ActivityEvents(models.TextChoices):
+    AGENT_CREATED = "agent_created", "Agent Created"
+    AGENT_DELETED = "agent_deleted", "Agent Deleted"
+    AGENT_MODIFIED = "agent_modified", "Agent Modified"
+    CHAT_STARTED = "chat_started", "Chat Started"
+    CHAT_ENDED = "chat_ended", "Chat Ended"
+    CHAT_DELETED = "chat_deleted", "Chat Deleted"
+    ERROR_OCCURRED = "error_occurred", "Error Occurred"
+
+class AgentActivityLog(models.Model):
+    agent = models.ForeignKey(AgentConfig, on_delete=models.SET_NULL, null=True, blank=True)
+    action = models.CharField(max_length=50, choices=ActivityEvents.choices)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    description = models.TextField(blank=True, null=True)
+    metadata = models.JSONField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user} - {self.action} @ {self.timestamp}"
+
+class AgentMetric(models.Model):
+    agent = models.ForeignKey(AgentConfig, on_delete=models.CASCADE)
+    date = models.DateField(auto_now_add=True)
+    
+    total_requests = models.PositiveIntegerField(default=0)
+    total_success = models.PositiveIntegerField(default=0)
+    total_failures = models.PositiveIntegerField(default=0)
+    total_response_time_ms = models.BigIntegerField(default=0)
+
+    def average_response_time(self):
+        if self.total_requests == 0:
+            return 0
+        return self.total_response_time_ms / self.total_requests

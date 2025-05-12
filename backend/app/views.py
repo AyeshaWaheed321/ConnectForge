@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import json
+import time
 import uuid
 from django.conf import settings
 from django.shortcuts import get_object_or_404
@@ -14,9 +15,9 @@ from rest_framework.pagination import PageNumberPagination
 
 from .mcp.client import agent_executor
 
-from .utils import get_tools
+from .utils import get_tools, log_activity, update_metrics
 
-from .models import AgentConfig, ChatHistory, Tool
+from .models import ActivityEvents, AgentConfig, ChatHistory, Tool
 
 from .serializers import AgentConfigCoreSerializer, AgentConfigWrapperSerializer, ToolSerializer
 import json
@@ -83,6 +84,13 @@ class AgentConfigViewSet(viewsets.ModelViewSet):
                 tools = Tool.objects.filter(agent=agent)
                 tool_data = ToolSerializer(tools, many=True).data
 
+                log_activity(
+                    agent=agent,
+                    action=ActivityEvents.AGENT_CREATED,
+                    description="Agent successfully created.",
+                    metadata={"agent_id": str(agent.id)}
+                )
+
                 return Response({
                     "message": "Agent registered successfully",
                     "agent_name": agent.agent_name,
@@ -92,6 +100,12 @@ class AgentConfigViewSet(viewsets.ModelViewSet):
                 }, status=status.HTTP_201_CREATED)
 
             except Exception as e:
+                log_activity(
+                    agent=None,
+                    action=ActivityEvents.ERROR_OCCURRED,
+                    description="Agent creation failed.",
+                    metadata={"error": str(e)}
+                )
                 return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -110,6 +124,13 @@ class AgentConfigViewSet(viewsets.ModelViewSet):
                 tools = Tool.objects.filter(agent=agent)
                 tool_data = ToolSerializer(tools, many=True).data
 
+                log_activity(
+                    agent=agent,
+                    action=ActivityEvents.AGENT_MODIFIED,
+                    description="Agent configuration updated.",
+                    metadata={"agent_id": str(agent.id)}
+                )
+
                 return Response({
                     "message": "Agent updated successfully",
                     "agent_name": agent.agent_name,
@@ -119,6 +140,12 @@ class AgentConfigViewSet(viewsets.ModelViewSet):
                 }, status=status.HTTP_200_OK)
 
             except Exception as e:
+                log_activity(
+                    agent=instance,
+                    action=ActivityEvents.ERROR_OCCURRED,
+                    description="Agent update failed.",
+                    metadata={"error": str(e)}
+                )
                 return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -131,13 +158,30 @@ class AgentConfigViewSet(viewsets.ModelViewSet):
         kwargs['partial'] = True
         return self.update(request, *args, **kwargs)
 
-    @swagger_auto_schema(
-        operation_summary="Delete an agent",
-        operation_description="Removes the agent configuration and its associated tools.",
-    )
     def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
-    
+        instance = self.get_object()
+        agent_id = str(instance.id)
+        agent_name = instance.agent_name
+        try:
+            response = super().destroy(request, *args, **kwargs)
+
+            log_activity(
+                agent=None,  # Agent is deleted, can't FK it
+                action=ActivityEvents.AGENT_DELETED,
+                description=f"Agent '{agent_name}' deleted.",
+                metadata={"agent_id": agent_id}
+            )
+
+            return response
+        except Exception as e:
+            log_activity(
+                agent=None,
+                action=ActivityEvents.ERROR_OCCURRED,
+                description=f"Deletion failed for agent '{agent_name}'.",
+                metadata={"error": str(e), "agent_id": agent_id}
+            )
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)   
+
 class ExtendMCPServersView(APIView):
     """
     Add custom MCP servers for an existing agent to register new tools and extend the functionality.
@@ -224,9 +268,7 @@ class ExtendMCPServersView(APIView):
     responses={
         200: openapi.Response(description='AI Response', schema=openapi.Schema(
             type=openapi.TYPE_OBJECT,
-            properties={
-                'response': openapi.Schema(type=openapi.TYPE_STRING),
-            },
+            properties={'response': openapi.Schema(type=openapi.TYPE_STRING)},
         )),
         400: openapi.Response(description='Bad request'),
         404: openapi.Response(description='Agent not found'),
@@ -248,42 +290,36 @@ def chat(request):
 
     try:
         agent = AgentConfig.objects.select_related("llm").get(id=agent_uuid)
+        start_time = time.time()
 
-        mcp_servers = agent.mcp_server or {}
-        llm_config = agent.llm
+        response = agent_executor(user_message, agent)
 
-        agent_llm_dict = {
-            "provider": llm_config.provider,
-            "model": llm_config.model,
-            "api_key": llm_config.api_key,
-            "max_tokens": llm_config.max_tokens,
-            "temperature": llm_config.temperature,
-            "timeout": llm_config.timeout,
-            "max_retries": llm_config.max_retries,
-            "system_message": agent.system_message,
-            "n_history_messages": agent.n_history_messages,
-            "agent_id": str(agent.id),
-        }
-
-        response = agent_executor(user_message, mcp_servers, agent_llm_dict)
+        duration_ms = int((time.time() - start_time) * 1000)
 
         if "error" in response:
-            # Log the error message for debugging purposes
-            logger.error(f"Error from agent execution: {response['error']}")
+            logger.error(f"[{agent.agent_name}] Agent execution error: {response['error']}")
+            log_activity(
+                agent=agent,
+                action=ActivityEvents.ERROR_OCCURRED,
+                description=f"Error during agent execution: {response['error']}",
+                metadata={"response": response['error'], "duration_ms": duration_ms}
+            )
+            update_metrics(agent, success=False, response_time_ms=duration_ms)
             return Response({"error": response['error']}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        output = response.get("output")
-        if not output:
-            logger.warning("Agent did not return a valid response.")
-            return Response({"error": "Unable to generate a response. Please try again with some diffrent query"}, status=status.HTTP_200_OK)
-        
+        log_activity(
+            agent=agent,
+            action=ActivityEvents.CHAT_ENDED,
+            description="Successfully exited chat with agent",
+            metadata={"duration_ms": duration_ms}
+        )
+        update_metrics(agent, success=True, response_time_ms=duration_ms)
         return Response({"response": response["output"]}, status=status.HTTP_200_OK)
 
     except AgentConfig.DoesNotExist:
         return Response({"error": f"Agent with id {agent_id} not found."}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        # Handle unexpected errors
-        logger.error(f"Unexpected error: {str(e)}")
+        logger.exception("Unexpected error in chat view")
         return Response({"error": "Something went wrong, please try again."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class ChatHistoryPagination(PageNumberPagination):
@@ -364,3 +400,58 @@ def chat_history(request):
         for entry in paginated_qs
     ]
     return paginator.get_paginated_response(serialized)
+
+@swagger_auto_schema(
+    method='delete',
+    operation_description="Delete the chat history of a specific AI agent.",
+    manual_parameters=[
+        openapi.Parameter(
+            'agent_id', openapi.IN_QUERY, description="UUID of the agent",
+            type=openapi.TYPE_STRING, required=True
+        ),
+    ],
+    responses={
+        200: openapi.Response(description="Chat history deleted successfully."),
+        400: openapi.Response(description="Bad request"),
+        404: openapi.Response(description="Agent not found"),
+    }
+)
+@api_view(["DELETE"])
+def delete_chat_history(request):
+    agent_id = request.GET.get("agent_id")
+
+    if not agent_id:
+        return Response({"error": "agent_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        agent_uuid = uuid.UUID(agent_id)
+    except ValueError:
+        return Response({"error": "Invalid UUID format for agent_id."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        agent = AgentConfig.objects.get(id=agent_uuid)
+    except AgentConfig.DoesNotExist:
+        return Response({"error": f"Agent with id {agent_id} not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    # Delete the chat history related to the agent
+    try:
+        ChatHistory.objects.filter(agent=agent).delete()
+
+        # Log the deletion activity
+        log_activity(
+            agent=agent,
+            action=ActivityEvents.CHAT_DELETED,
+            description=f"Chat history for agent '{agent.agent_name}' deleted.",
+            metadata={"agent_id": str(agent.id)}
+        )
+
+        return Response({"message": "Chat history deleted successfully."}, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        log_activity(
+            agent=agent,
+            action=ActivityEvents.ERROR_OCCURRED,
+            description="Failed to delete chat history.",
+            metadata={"error": str(e)}
+        )
+        return Response({"error": f"Error occurred while deleting chat history: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
