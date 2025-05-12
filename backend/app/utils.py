@@ -36,7 +36,7 @@ def update_metrics(agent, success: bool, response_time_ms: int):
     metric.total_response_time_ms += response_time_ms
     metric.save()
 
-@sync_to_async
+@sync_to_async(thread_sensitive=False)
 def log_activity_async(agent, action, description, metadata=None):
     log_activity(
         agent=agent,

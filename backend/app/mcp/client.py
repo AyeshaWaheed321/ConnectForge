@@ -82,11 +82,11 @@ def get_llm_from_config(agent_config: dict):
 
     return llm_class(**llm_kwargs)
 
-@sync_to_async
+@sync_to_async(thread_sensitive=False)
 def get_chat_history(agent, n_history_messages):
     return list(ChatHistory.objects.filter(agent=agent).order_by('-timestamp')[:n_history_messages])
 
-@sync_to_async
+@sync_to_async(thread_sensitive=False)
 def save_messages(agent, user_message, ai_message):
     ChatHistory.objects.create(agent=agent, message=user_message, role="human", role_order=0)
     ChatHistory.objects.create(agent=agent, message=ai_message, role="ai", role_order=1)
