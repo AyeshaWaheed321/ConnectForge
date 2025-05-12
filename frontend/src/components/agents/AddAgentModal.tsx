@@ -1,42 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Button, Form, Typography, message } from "antd";
+import { Button, Form, Typography, message } from "antd";
 import { JsonEditor } from "../common/JsonEditor";
-import "./agentModal.css";
-
-// Constants
 import URLS from "../../constants/UrlConstants";
 import { REDUX_STATES } from "../../constants/ReduxStates";
-
-// Redux
 import useAppDispatch from "../../hooks/useAppDispatch";
 import { useSelector } from "react-redux";
-
-// Actions
 import { getAction } from "../../store/actions/crudActions";
-
-// Localization
 import LOCALIZATION from "../../services/LocalizationService";
+import GenericModal from "../common/GenericModal";
 
 const { Title, Paragraph } = Typography;
-
 const { AGENTS_TEMPLATE, RESPONSE } = REDUX_STATES || {};
-
-// const defaultAgentJson = {
-//   version: "1.0",
-//   agentId: "unique-agent-id",
-//   name: "Display Name",
-//   description: "Brief description of the agent.",
-//   tags: ["example", "research"],
-//   priority: 10,
-//   personality: ["Personality trait 1", "Personality trait 2"],
-//   nodes: ["llm.openai", "search"],
-//   nodeConfigurations: {
-//     "llm.openai": {
-//       model: "YOUR_CHOSEN_MODEL",
-//       temperature: 0.7,
-//     },
-//   },
-// };
 
 interface AgentModalProps {
   visible: boolean;
@@ -49,14 +23,11 @@ const AgentModal: React.FC<AgentModalProps> = ({
   onClose,
   onSubmit,
 }) => {
-
   const dispatch = useAppDispatch();
-
-  // Redux States
   const { [AGENTS_TEMPLATE + RESPONSE]: defaultTemplate = null } = useSelector(
     (state: any) => state?.crud
   );
-    // local state
+
   const [form] = Form.useForm();
   const [jsonValue, setJsonValue] = useState<string>(
     JSON.stringify({}, null, 2)
@@ -65,13 +36,11 @@ const AgentModal: React.FC<AgentModalProps> = ({
 
   useEffect(() => {
     if (defaultTemplate === null) {
-       dispatch(getAction(URLS.GET_AGENT_ADD_TEMPLATE, {}, AGENTS_TEMPLATE));
-    }else {
-        setJsonValue(JSON.stringify(defaultTemplate?.data));
+      dispatch(getAction(URLS.GET_AGENT_ADD_TEMPLATE, {}, AGENTS_TEMPLATE));
+    } else {
+      setJsonValue(JSON.stringify(defaultTemplate?.data));
     }
   }, [defaultTemplate]);
-
-
 
   const handleJsonChange = (value: string | undefined) => {
     if (!value) {
@@ -108,46 +77,50 @@ const AgentModal: React.FC<AgentModalProps> = ({
     }
   };
 
-  return (
-    <Modal
-      title="Add New Agent"
-      open={visible}
-      onCancel={onClose}
-      width={700}
-      className="agent-modal"
-      footer={[
-        <Button key="cancel" onClick={onClose}>
-           { LOCALIZATION.CANCEL }
-        </Button>,
-        <Button
-          key="submit"
-          type="primary"
-          onClick={handleSubmit}
-          disabled={!!jsonError}
-          className="submit-button"
-        >
-          { LOCALIZATION.CREATE_AGENT }
-        </Button>,
-      ]}
+  const modalFooter = [
+    <Button key="cancel" onClick={onClose}>
+      {LOCALIZATION.CANCEL}
+    </Button>,
+    <Button
+      key="submit"
+      type="primary"
+      onClick={handleSubmit}
+      disabled={!!jsonError}
+      className="submit-button"
     >
-      <Form form={form} layout="vertical">
-        <Paragraph className="agent-description">
-          { LOCALIZATION.AGENT_MODAL_DESCRIPTION }
-        </Paragraph>
-        <Form.Item
-          label="Agent Configuration (JSON)"
-          validateStatus={jsonError ? "error" : ""}
-          help={jsonError}
-          className="agent-form-item"
-        >
-          <JsonEditor
-            value={jsonValue}
-            onChange={handleJsonChange}
-            height="300px"
-          />
-        </Form.Item>
-      </Form>
-    </Modal>
+      {LOCALIZATION.CREATE_AGENT}
+    </Button>,
+  ];
+
+  const modalContent = (
+    <Form form={form} layout="vertical">
+      <Paragraph className="agent-description">
+        {LOCALIZATION.AGENT_MODAL_DESCRIPTION}
+      </Paragraph>
+      <Form.Item
+        label="Agent Configuration (JSON)"
+        validateStatus={jsonError ? "error" : ""}
+        help={jsonError}
+        className="agent-form-item"
+      >
+        <JsonEditor
+          value={jsonValue}
+          onChange={handleJsonChange}
+          height="300px"
+        />
+      </Form.Item>
+    </Form>
+  );
+
+  return (
+    <GenericModal
+      visible={visible}
+      title="Add New Agent"
+      onClose={onClose}
+      onSubmit={handleSubmit}
+      footer={modalFooter}
+      content={modalContent}
+    />
   );
 };
 

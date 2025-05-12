@@ -1,8 +1,9 @@
 .agent-card {
-  margin-bottom: 24px;
+  margin-bottom: 18px;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
+  padding: 6px !important;
 }
 
 .agent-card:hover {
@@ -21,34 +22,53 @@
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #1A1F2C;
+  color: #1a1f2c;
 }
 
 .agent-provider {
   font-size: 14px;
-  color: #8A898C;
+  color: #8a898c;
   margin-bottom: 8px;
 }
 
 .agent-description {
   margin-bottom: 16px;
-  color: #403E43;
+  color: #403e43;
   font-size: 14px;
+}
+
+.agent-tools-heading {
+  font-weight: 500;
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 6px;
+}
+
+.agent-tags-wrapper {
+  overflow: hidden;
+  max-height: 36em; /* assumes ~1.8em per line, adjust based on font-size/line-height */
+  position: relative;
 }
 
 .agent-tags {
   display: flex;
   flex-wrap: wrap;
-  margin-bottom: 16px;
-  gap: 8px;
+  gap: 6px;
 }
 
 .agent-tag {
-  font-size: 12px;
-  padding: 2px 10px;
+  background-color: #e5deff;
+  color: #7e69ab;
   border-radius: 12px;
-  background-color: #E5DEFF;
-  color: #7E69AB;
+  padding: 4px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.more-tag {
+  background: #d9d9d9;
+  color: #333;
+  font-weight: 500;
 }
 
 .agent-actions {
@@ -90,11 +110,11 @@
 }
 
 .status-badge.connected {
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
 }
 
 .status-badge.disconnected {
-  background-color: #FFDEE2;
-  color: #F44336;
+  background-color: #ffdee2;
+  color: #f44336;
 }

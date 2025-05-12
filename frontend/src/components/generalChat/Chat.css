@@ -102,13 +102,12 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #8A898C;
+  color: #8a898c;
   font-style: italic;
 }
 
 .message {
   margin-bottom: 12px;
-  max-width: 80%;
   padding: 0;
   border: none !important;
 }
@@ -148,7 +147,7 @@
 }
 
 .message.agent .message-time {
-  color: #8A898C;
+  color: #8a898c;
 }
 
 .chat-input-container {

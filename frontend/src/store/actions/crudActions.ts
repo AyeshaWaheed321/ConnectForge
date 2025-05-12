@@ -9,6 +9,7 @@ export const handleAction = (type: string, payload?: any) => ({
 export const getAction = (url: string, data: any, key: string) => {
   return async (dispatch: any) => {
     try {
+      console.log('getAction', url, data);
       dispatch(handleAction(CRUD_ACTION.GET_REQUEST, { key, params: data?.params }));
 
       const response = await service.getService(url, data);

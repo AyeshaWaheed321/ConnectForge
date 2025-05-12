@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, message} from "antd";
+import { Button, message } from "antd";
 import { MessageSquare, Trash2, Pause, Play, ArrowLeft } from "lucide-react";
 import "./agents.scss";
 
@@ -18,7 +18,11 @@ import useAppDispatch from "../../hooks/useAppDispatch";
 import { useSelector } from "react-redux";
 
 // Actions
-import { getAction, postAction, deleteAction } from "../../store/actions/crudActions";
+import {
+  getAction,
+  postAction,
+  deleteAction,
+} from "../../store/actions/crudActions";
 
 // Localization
 import LOCALIZATION from "../../services/LocalizationService";
@@ -35,7 +39,6 @@ const Agents: React.FC = () => {
     [AGENTS + ERROR]: agentsListError = false,
   } = useSelector((state: any) => state?.crud);
 
- 
   // Local State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [chatMode, setChatMode] = useState(""); // track chat screen
@@ -59,62 +62,34 @@ const Agents: React.FC = () => {
     tool_names: string[];
   }
 
-  // const agents: Agent[] = [
-  //   {
-  //     id: 1,
-  //     name: "GitHub Agent",
-  //     provider: "github",
-  //     description:
-  //       "Monitors GitHub pull requests and provides summaries and analysis",
-  //     status: "Connected",
-  //     tags: ["github", "analyze", "summarize"],
-  //   },
-  //   {
-  //     id: 2,
-  //     name: "Slack Notifier",
-  //     provider: "slack",
-  //     description: "Sends notifications to Slack channels based on events",
-  //     status: "Connected",
-  //     tags: ["slack"],
-  //   },
-  //   {
-  //     id: 3,
-  //     name: "Jira Ticket Manager",
-  //     provider: "jira",
-  //     description:
-  //       "Creates and updates Jira tickets based on natural language requests",
-  //     status: "Not Connected",
-  //     tags: ["jira"],
-  //   },
-  // ];
-
   const handleSubmit = (values: any) => {
-    dispatch(postAction(URLS.AGENTS, values, null, AGENTS)).then(() => {
-      message.success("Agent is created successfully");
-      getAgentList();
-      setIsModalOpen(false);
-    },
-    (error: any) => {
-      setIsModalOpen(false);
-      message.error("Error creating agent. Please try again.");
-      console.error("Error creating agent:", error);
-    }
-  );
+    dispatch(postAction(URLS.AGENTS, values, null, AGENTS)).then(
+      () => {
+        message.success("Agent is created successfully");
+        getAgentList();
+        setIsModalOpen(false);
+      },
+      (error: any) => {
+        setIsModalOpen(false);
+        message.error("Error creating agent. Please try again.");
+        console.error("Error creating agent:", error);
+      }
+    );
   };
 
-    const handleDelete = (id: string) => {
-    dispatch(deleteAction(URLS.DELETE_AGENT.replace("$id", id), null, null, AGENTS)).then(() => {
-      message.success("Agent is deleted successfully");
-      getAgentList();
-    },
-    (error: any) => {
-      message.error("Error in deleting agent. Please try again.");
-    }
-  );
+  const handleDelete = (id: string) => {
+    dispatch(
+      deleteAction(URLS.DELETE_AGENT.replace(":id", id), null, null, AGENTS)
+    ).then(
+      () => {
+        message.success("Agent is deleted successfully");
+        getAgentList();
+      },
+      (error: any) => {
+        message.error("Error in deleting agent. Please try again.");
+      }
+    );
   };
-  if (chatMode !== "") {
-    return <Chat onBack={() => setChatMode("")} chatMode={chatMode}/>;
-  }
 
   return (
     <div className="agents-screen">
@@ -131,18 +106,19 @@ const Agents: React.FC = () => {
       </div>
 
       <div className="agents-grid">
-        {!!agentsList?.data && agentsList?.data?.map((agent: Agent) => (
-          <AgentCard
-            id={agent.id}
-            name={agent.agent_name}
-            // provider={agent.provider}
-            description={agent.description}
-            status={"Connected"}
-            tags={agent.tool_names}
-            setChatMode={setChatMode}
-            handleDelete={handleDelete}
-          />
-        ))}
+        {!!agentsList?.data &&
+          agentsList?.data?.map((agent: Agent) => (
+            <AgentCard
+              id={agent.id}
+              key={agent.id}
+              name={agent.agent_name}
+              // provider={agent.provider}
+              description={agent.description}
+              status={"Connected"}
+              tags={agent.tool_names}
+              handleDelete={handleDelete}
+            />
+          ))}
       </div>
 
       <AgentModal
