@@ -5,16 +5,17 @@ import AgentConfigModal, { AgentConfigFormValues } from './AgentConfigModal';
 import './AgentCard.css';
 
 export interface AgentProps {
-  id: number;
+  id: string;
   name: string;
-  provider: string;
+  // provider: string;
   description: string;
   status: 'Connected' | 'Not Connected';
   tags: string[];
-  setChatMode: Dispatch<SetStateAction<boolean>>;
+  setChatMode: Dispatch<SetStateAction<string>>;
+  handleDelete: (id: string) => void;
 }
 
-export const AgentCard: React.FC<AgentProps> = ({ id, name, provider, description, status, tags, setChatMode }) => {
+export const AgentCard: React.FC<AgentProps> = ({ id, name, description, status, tags, setChatMode, handleDelete }) => {
   const [modalVisible, setModalVisible] = useState(false);
    const [configModalVisible, setConfigModalVisible] = useState(false);
 
@@ -58,7 +59,7 @@ export const AgentCard: React.FC<AgentProps> = ({ id, name, provider, descriptio
         </span>
       </div>
       
-      <p className="agent-provider">{provider}</p>
+      {/* <p className="agent-provider">{provider}</p> */}
       <p className="agent-description">{description}</p>
       
       <div className="agent-tags">
@@ -91,7 +92,7 @@ export const AgentCard: React.FC<AgentProps> = ({ id, name, provider, descriptio
           <Button 
             type="text" 
             icon={<MessageCircle size={18} />} 
-            onClick={() => setChatMode(true)}
+            onClick={() => setChatMode(id)}
             className="action-button"
           />
         </Tooltip>
@@ -107,16 +108,17 @@ export const AgentCard: React.FC<AgentProps> = ({ id, name, provider, descriptio
           <Button 
             type="text" 
             icon={<Trash size={18} />} 
+            onClick={() => handleDelete(id)}
             className="action-button delete-button"
           />
         </Tooltip>
       </div>
 
-<AgentConfigModal
+{/* <AgentConfigModal
         visible={configModalVisible}
         onClose={handleCloseConfigModal}
         onSubmit={handleSubmitConfig}
-      />
+      /> */}
       {/* <AgentModal
         visible={modalVisible}
         onClose={handleCloseModal}

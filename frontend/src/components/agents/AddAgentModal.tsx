@@ -4,7 +4,7 @@ import { JsonEditor } from "../common/JsonEditor";
 import "./agentModal.css";
 
 // Constants
-import URLS from "../../constants/URLConstants";
+import URLS from "../../constants/UrlConstants";
 import { REDUX_STATES } from "../../constants/ReduxStates";
 
 // Redux
@@ -14,28 +14,29 @@ import { useSelector } from "react-redux";
 // Actions
 import { getAction } from "../../store/actions/crudActions";
 
-// redux
+// Localization
+import LOCALIZATION from "../../services/LocalizationService";
 
 const { Title, Paragraph } = Typography;
 
-const { AGENTS_TEMPLATE, RESPONSE, LOADING, ERROR } = REDUX_STATES || {};
+const { AGENTS_TEMPLATE, RESPONSE } = REDUX_STATES || {};
 
-const defaultAgentJson = {
-  version: "1.0",
-  agentId: "unique-agent-id",
-  name: "Display Name",
-  description: "Brief description of the agent.",
-  tags: ["example", "research"],
-  priority: 10,
-  personality: ["Personality trait 1", "Personality trait 2"],
-  nodes: ["llm.openai", "search"],
-  nodeConfigurations: {
-    "llm.openai": {
-      model: "YOUR_CHOSEN_MODEL",
-      temperature: 0.7,
-    },
-  },
-};
+// const defaultAgentJson = {
+//   version: "1.0",
+//   agentId: "unique-agent-id",
+//   name: "Display Name",
+//   description: "Brief description of the agent.",
+//   tags: ["example", "research"],
+//   priority: 10,
+//   personality: ["Personality trait 1", "Personality trait 2"],
+//   nodes: ["llm.openai", "search"],
+//   nodeConfigurations: {
+//     "llm.openai": {
+//       model: "YOUR_CHOSEN_MODEL",
+//       temperature: 0.7,
+//     },
+//   },
+// };
 
 interface AgentModalProps {
   visible: boolean;
@@ -55,21 +56,22 @@ const AgentModal: React.FC<AgentModalProps> = ({
   const { [AGENTS_TEMPLATE + RESPONSE]: defaultTemplate = null } = useSelector(
     (state: any) => state?.crud
   );
-  console.log("defaultTemplate", defaultTemplate);
+    // local state
+  const [form] = Form.useForm();
+  const [jsonValue, setJsonValue] = useState<string>(
+    JSON.stringify({}, null, 2)
+  );
+  const [jsonError, setJsonError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("defaultTemplate", defaultTemplate);
     if (defaultTemplate === null) {
        dispatch(getAction(URLS.GET_AGENT_ADD_TEMPLATE, {}, AGENTS_TEMPLATE));
+    }else {
+        setJsonValue(JSON.stringify(defaultTemplate?.data));
     }
   }, [defaultTemplate]);
 
-  // local state
-  const [form] = Form.useForm();
-  const [jsonValue, setJsonValue] = useState<string>(
-    JSON.stringify(defaultAgentJson, null, 2)
-  );
-  const [jsonError, setJsonError] = useState<string | null>(null);
+
 
   const handleJsonChange = (value: string | undefined) => {
     if (!value) {
@@ -115,7 +117,7 @@ const AgentModal: React.FC<AgentModalProps> = ({
       className="agent-modal"
       footer={[
         <Button key="cancel" onClick={onClose}>
-          Cancel
+           { LOCALIZATION.CANCEL }
         </Button>,
         <Button
           key="submit"
@@ -124,14 +126,13 @@ const AgentModal: React.FC<AgentModalProps> = ({
           disabled={!!jsonError}
           className="submit-button"
         >
-          Create Agent
+          { LOCALIZATION.CREATE_AGENT }
         </Button>,
       ]}
     >
       <Form form={form} layout="vertical">
         <Paragraph className="agent-description">
-          Create a new agent by providing its JSON configuration. Your
-          submission will be reviewed before being made available.
+          { LOCALIZATION.AGENT_MODAL_DESCRIPTION }
         </Paragraph>
         <Form.Item
           label="Agent Configuration (JSON)"

@@ -27,16 +27,44 @@ export const getAction = (url: string, data: any, key: string) => {
   };
 };
 
-// Add other actions similar to your example...
-
-export const updateKeyData = (data: any, key: string) => {
+export const postAction = (url: string, data: any, opt: any, key: string) => {
   return async (dispatch: any) => {
-    dispatch(handleAction(CRUD_ACTION.UPDATE_KEY_DATA, { key, data }));
+    try {
+      dispatch(handleAction(CRUD_ACTION.POST_REQUEST, { key }));
+
+      const response = await service.postService(url, data, opt);
+
+      if (response) {
+        dispatch(handleAction(CRUD_ACTION.POST_SUCCESS, { key, response }));
+      } else {
+        dispatch(handleAction(CRUD_ACTION.POST_FAILURE, { key }));
+      }
+
+      return response;
+    } catch (error) {
+      dispatch(handleAction(CRUD_ACTION.POST_FAILURE, { key, error }));
+      throw error;
+    }
   };
 };
 
-export const resetKeyData = () => {
+export const deleteAction = (url: string, data: any, opt: any, key: string) => {
   return async (dispatch: any) => {
-    dispatch(handleAction(CRUD_ACTION.RESET_KEY_DATA));
+    try {
+      dispatch(handleAction(CRUD_ACTION.DELETE_REQUEST, { key }));
+
+      const response = await service.deleteService(url, data, opt);
+
+      if (response) {
+        dispatch(handleAction(CRUD_ACTION.DELETE_SUCCESS, { key, response }));
+      } else {
+        dispatch(handleAction(CRUD_ACTION.DELETE_FAILURE, { key }));
+      }
+
+      return response;
+    } catch (error) {
+      dispatch(handleAction(CRUD_ACTION.DELETE_FAILURE, { key, error }));
+      throw error;
+    }
   };
 };
