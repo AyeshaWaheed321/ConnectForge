@@ -3,6 +3,51 @@
 A powerful hub for interacting with tools and services through a conversational **LLM interface**, seamlessly integrated with the **Model Context Protocol (MCP)** ecosystem.  
 ConnectForge enables you to chat naturally while executing tasks via connected MCP servers—such as GitHub automation, math computations, file operations, web search, and more—through a modular and extensible **multi-agent architecture**.
 
+### 🔧 Environment Setup (Backend)
+
+To get started, first **clone the repository**:
+
+Before running the backend, make sure to configure your environment variables in a `.env` file inside the `backend` folder. Refer to the `.env-example` file for the correct structure. You **must** provide the following values:
+
+- `DATABASE_URL`: This should point to the PostgreSQL database using the credentials defined in your Docker setup. Example:
+
+```bash
+  DATABASE_URL=postgres://<user>:<password>@database:5432/<db-name>
+```
+
+- `OPENAI_API_KEY`: Your OpenAI API key.
+
+- `GROQ_API_KEY`: Your Groq API key.
+
+Ensure all these variables are properly set before starting the backend services.
+
+### 🚀 Running the Project with Docker
+
+This project includes both backend and frontend services, and you can run them together using Docker. Follow these steps:
+
+1. **Navigate to the project root directory**.
+
+2. **Bring down any running Docker containers**:
+
+   ```bash
+   docker compose down
+   ```
+
+3. **Build the Docker images**:
+
+   ```bash
+   docker compose build
+   ```
+
+4. **Start the containers**:
+
+   ```bash
+   docker compose up
+   ```
+
+Once the containers are up, you can access the project on your local machine by going to: `backend`
+This will run both the backend and frontend services on localhost using the Docker setup.
+
 ## 🚀 Key Features
 
 - **Agent Registration**: Easily register agents using a configurable JSON structure compatible with Claude Desktop or any external MCP server.
