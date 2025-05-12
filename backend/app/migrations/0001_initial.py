@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
                 ('system_message', models.TextField(blank=True, default='You are a helpful AI assistant with access to tools.', null=True)),
                 ('n_messages', models.PositiveIntegerField(default=5)),
                 ('mcp_server', models.JSONField(default=dict)),
-                ('llm', models.OneToOneField(default=None, on_delete=django.db.models.deletion.CASCADE, to='agents.llmconfig')),
+                ('llm', models.OneToOneField(default=None, on_delete=django.db.models.deletion.CASCADE, to='app.llmconfig')),
             ],
         ),
         migrations.CreateModel(
@@ -45,7 +45,7 @@ class Migration(migrations.Migration):
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('name', models.CharField(max_length=255)),
                 ('description', models.TextField()),
-                ('agent', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tools', to='agents.agentconfig')),
+                ('agent', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tools', to='app.agentconfig')),
             ],
         ),
     ]

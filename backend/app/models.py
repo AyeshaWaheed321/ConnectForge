@@ -9,8 +9,8 @@ class LLMConfig(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     provider = models.CharField(max_length=50, choices=LLMProvider.choices, default=LLMProvider.GROQ)
     model = models.CharField(max_length=100)
-    max_tokens = models.PositiveIntegerField(default=500)
-    temperature = models.FloatField(default=0.7)
+    max_tokens = models.PositiveIntegerField(default=1000)
+    temperature = models.FloatField(default=0)
     timeout = models.PositiveIntegerField(default=10)
     max_retries = models.PositiveIntegerField(default=2)
     api_key = models.CharField(max_length=512, null=True, blank=True)  # stored but excluded from serializer

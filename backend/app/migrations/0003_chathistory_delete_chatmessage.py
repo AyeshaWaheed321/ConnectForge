@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('agents', '0002_chatmessage'),
+        ('app', '0002_chatmessage'),
     ]
 
     operations = [
@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ('message', models.TextField()),
                 ('role', models.CharField(choices=[('human', 'Human'), ('ai', 'AI')], max_length=10)),
                 ('timestamp', models.DateTimeField(auto_now_add=True)),
-                ('agent', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='agents.agentconfig')),
+                ('agent', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='app.agentconfig')),
             ],
         ),
         migrations.DeleteModel(

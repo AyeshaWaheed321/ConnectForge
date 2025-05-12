@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 class SampleAgentConfigView(APIView):
     def get(self, request):
         try:
-            file_path = os.path.join(settings.BASE_DIR, 'agents', 'config_template', 'sample_config.json')
+            file_path = os.path.join(settings.BASE_DIR, 'app', 'config_template', 'sample_config.json')
             with open(file_path, 'r') as f:
                 data = json.load(f)
             return Response(data, status=status.HTTP_200_OK)

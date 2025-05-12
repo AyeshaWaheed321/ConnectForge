@@ -30,14 +30,14 @@ logger = logging.getLogger(__name__)
 #     },
 #     "math": {
 #         "command": "python",
-#         "args": ["E:/AgentDoc/backend/agents/mcp_servers/calculator.py"],
+#         "args": ["E:/AgentDoc/backend/app/mcp_servers/calculator.py"],
 #     },
 #     "filesystem": {
 #       "command": "npx",
 #       "args": [
 #         "-y",
 #         "@modelcontextprotocol/server-filesystem",
-#         "E:/AgentDoc/backend/agents",
+#         "E:/AgentDoc/backend/app",
 #       ]
 #     }
 #   }

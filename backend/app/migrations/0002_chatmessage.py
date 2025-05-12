@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('agents', '0001_initial'),
+        ('app', '0001_initial'),
     ]
 
     operations = [
@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ('message', models.TextField()),
                 ('role', models.CharField(choices=[('human', 'Human'), ('ai', 'AI')], max_length=10)),
                 ('timestamp', models.DateTimeField(auto_now_add=True)),
-                ('agent', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='agents.agentconfig')),
+                ('agent', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='app.agentconfig')),
             ],
         ),
     ]

@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('agents', '0003_chathistory_delete_chatmessage'),
+        ('app', '0003_chathistory_delete_chatmessage'),
     ]
 
     operations = [
