@@ -1,5 +1,3 @@
-# AgentDoc
-
 # 🧠 ConnectForge
 
 A powerful hub for interacting with tools and services through a conversational **LLM interface**, seamlessly integrated with the **Model Context Protocol (MCP)** ecosystem.  
@@ -9,17 +7,15 @@ ConnectForge enables you to chat naturally while executing tasks via connected M
 
 - **Agent Registration**: Easily register agents using a configurable JSON structure compatible with Claude Desktop or any external MCP server.
 
-- **Tool Chaining Support**: Automatically supported in the MCP Chat Client.
-
 - **Multi-Agent Support**: Combine multiple MCP server configurations to extend functionality or run multiple agents concurrently.
 
 - **Dashboard Monitoring**: Track agent interactions and system performance via a dedicated UI.
 
-- **Tool Management**: View, edit, and delete tools dynamically through the interface.
-
 - **Chat History**: View historical conversations (single-agent only).
 
 - **Extendable Tools**: Add custom external tools by updating the `mcpServers` configuration block.
+
+- **Tool Chaining Support**: Supported in the MCP Chat Client.
 
 ## 🛠 Tech Stack
 
