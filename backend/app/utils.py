@@ -44,3 +44,11 @@ def log_activity_async(agent, action, description, metadata=None):
         description=description,
         metadata=metadata
     )
+
+@sync_to_async(thread_sensitive=False)
+def update_metrics_async(agent, success: bool, response_time_ms: int):
+    update_metrics(
+        agent=agent,
+        success=success,
+        response_time_ms=response_time_ms
+    )

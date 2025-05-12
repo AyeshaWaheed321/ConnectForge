@@ -14,10 +14,11 @@ from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import generics
 from django.db.models import Sum, Count
+from asgiref.sync import sync_to_async, async_to_sync
 
-from .mcp.client import agent_executor
+from .mcp.client import agent_executor, run_client
 
-from .utils import get_tools, log_activity, update_metrics
+from .utils import get_tools, log_activity, log_activity_async, update_metrics, update_metrics_async
 
 from .models import ActivityEvents, AgentActivityLog, AgentConfig, AgentMetric, ChatHistory, Tool
 
@@ -260,74 +261,72 @@ class ExtendMCPServersView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-@swagger_auto_schema(
-    method='post',
-    operation_description="Chat with a specific AI agent using LangChain + LLM Provider to use the agent's tools.",
-    request_body=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        required=['message', 'agent_id'],
-        properties={
-            'message': openapi.Schema(type=openapi.TYPE_STRING, description='User input message'),
-            'agent_id': openapi.Schema(type=openapi.TYPE_STRING, description='UUID of the agent'),
-        },
-    ),
-    responses={
-        200: openapi.Response(description='AI Response', schema=openapi.Schema(
+class ChatView(APIView):
+    @swagger_auto_schema(
+        operation_description="Send a message to a specific agent and get response.",
+        request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
-            properties={'response': openapi.Schema(type=openapi.TYPE_STRING)},
-        )),
-        400: openapi.Response(description='Bad request'),
-        404: openapi.Response(description='Agent not found'),
-        500: openapi.Response(description='Internal server error'),
-    }
-)
-@api_view(["POST"])
-def chat(request):
-    user_message = request.data.get("message", "")
-    agent_id = request.data.get("agent_id")
+            required=["message", "agent_id"],
+            properties={
+                "message": openapi.Schema(type=openapi.TYPE_STRING, description="User message"),
+                "agent_id": openapi.Schema(type=openapi.TYPE_STRING, description="UUID of the agent"),
+            },
+        ),
+        responses={
+            200: openapi.Response(
+                description="Successful response",
+                examples={"application/json": {"response": "Agent's reply"}}
+            ),
+            400: "Bad Request",
+            404: "Agent Not Found",
+            500: "Internal Server Error",
+        }
+    )
+    def post(self, request):
+        user_message = request.data.get("message", "")
+        agent_id = request.data.get("agent_id")
 
-    if not agent_id:
-        return Response({"error": "agent_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+        if not agent_id:
+            return Response({"error": "agent_id is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-    try:
-        agent_uuid = uuid.UUID(agent_id)
-    except ValueError:
-        return Response({"error": "Invalid UUID format for agent_id."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            agent_uuid = uuid.UUID(agent_id)
+        except ValueError:
+            return Response({"error": "Invalid UUID format for agent_id."}, status=status.HTTP_400_BAD_REQUEST)
 
-    try:
-        agent = AgentConfig.objects.select_related("llm").get(id=agent_uuid)
-        start_time = time.time()
+        try:
+            agent = AgentConfig.objects.select_related("llm").get(id=agent_uuid)
 
-        response = agent_executor(user_message, agent)
+            start_time = time.time()
+            response = async_to_sync(run_client)(user_message, agent)  # sync-safe call
+            duration_ms = int((time.time() - start_time) * 1000)
 
-        duration_ms = int((time.time() - start_time) * 1000)
+            logger.info(f"Response: {response}")
+            if "error" in response:
+                logger.error(f"[{agent.agent_name}] Agent execution error: {response['error']}")
+                async_to_sync(log_activity_async)(
+                    agent=agent,
+                    action=ActivityEvents.ERROR_OCCURRED,
+                    description=f"Error during agent execution: {response['error']}",
+                    metadata={"response": response["error"], "duration_ms": duration_ms}
+                )
+                async_to_sync(update_metrics_async)(agent, success=False, response_time_ms=duration_ms)
+                return Response({"error": response["error"]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        if "error" in response:
-            logger.error(f"[{agent.agent_name}] Agent execution error: {response['error']}")
-            log_activity(
+            async_to_sync(log_activity_async)(
                 agent=agent,
-                action=ActivityEvents.ERROR_OCCURRED,
-                description=f"Error during agent execution: {response['error']}",
-                metadata={"response": response['error'], "duration_ms": duration_ms}
+                action=ActivityEvents.CHAT_ENDED,
+                description="Successfully exited chat with agent",
+                metadata={"duration_ms": duration_ms}
             )
-            update_metrics(agent, success=False, response_time_ms=duration_ms)
-            return Response({"error": response['error']}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            async_to_sync(update_metrics_async)(agent, success=True, response_time_ms=duration_ms)
+            return Response({"response": response["output"]}, status=status.HTTP_200_OK)
 
-        log_activity(
-            agent=agent,
-            action=ActivityEvents.CHAT_ENDED,
-            description="Successfully exited chat with agent",
-            metadata={"duration_ms": duration_ms}
-        )
-        update_metrics(agent, success=True, response_time_ms=duration_ms)
-        return Response({"response": response["output"]}, status=status.HTTP_200_OK)
-
-    except AgentConfig.DoesNotExist:
-        return Response({"error": f"Agent with id {agent_id} not found."}, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        logger.exception("Unexpected error in chat view")
-        return Response({"error": "Something went wrong, please try again."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+        except AgentConfig.DoesNotExist:
+            return Response({"error": f"Agent with id {agent_id} not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.exception("Unexpected error in chat view")
+            return Response({"error": "Something went wrong, please try again."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 class CustomPagination(PageNumberPagination):
     page_size = 20
     page_size_query_param = 'page_size'

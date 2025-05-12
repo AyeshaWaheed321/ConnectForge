@@ -91,7 +91,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'connect_forge_base.wsgi.application'
+ASGI_APPLICATION = 'connect_forge_base.asgi.application'
 
 
 # Database
@@ -102,7 +102,7 @@ DATABASES = {
         "DATABASE_URL"
     ),
 }
-DATABASES["default"]["ATOMIC_REQUESTS"] = True
+DATABASES["default"]["ATOMIC_REQUESTS"] = False
 
 
 # Password validation
