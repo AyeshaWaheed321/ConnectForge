@@ -10,12 +10,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets
+from rest_framework.pagination import PageNumberPagination
 
-from .mcp_agent import agent_executor
+from .mcp.client import agent_executor
 
 from .utils import get_tools
 
-from .models import AgentConfig, LLMConfig, LLMProvider, Tool
+from .models import AgentConfig, ChatHistory, Tool
 
 from .serializers import AgentConfigCoreSerializer, AgentConfigWrapperSerializer, ToolSerializer
 import json
@@ -136,15 +137,15 @@ class AgentConfigViewSet(viewsets.ModelViewSet):
     )
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
+    
 class ExtendMCPServersView(APIView):
     """
-    Add new MCP servers to an existing agent's configuration and return newly registered tools.
-    Ensures no duplicate tool names are added to an agent.
+    Add custom MCP servers for an existing agent to register new tools and extend the functionality.
     """
 
     @swagger_auto_schema(
         operation_summary="Extend MCP servers",
-        operation_description="Adds new MCP server configs to an existing agent and registers new tools.",
+        operation_description="Add custom MCP servers for an existing agent to register new tools and extend the functionality.",
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
@@ -211,7 +212,7 @@ class ExtendMCPServersView(APIView):
 
 @swagger_auto_schema(
     method='post',
-    operation_description="Chat with a specific AI agent using LangChain + Groq with configured tools",
+    operation_description="Chat with a specific AI agent using LangChain + LLM Provider to use the agent's tools.",
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         required=['message', 'agent_id'],
@@ -260,76 +261,106 @@ def chat(request):
             "timeout": llm_config.timeout,
             "max_retries": llm_config.max_retries,
             "system_message": agent.system_message,
-            "n_messages": agent.n_messages,
+            "n_history_messages": agent.n_history_messages,
+            "agent_id": str(agent.id),
         }
 
         response = agent_executor(user_message, mcp_servers, agent_llm_dict)
 
+        if "error" in response:
+            # Log the error message for debugging purposes
+            logger.error(f"Error from agent execution: {response['error']}")
+            return Response({"error": response['error']}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        output = response.get("output")
+        if not output:
+            logger.warning("Agent did not return a valid response.")
+            return Response({"error": "Unable to generate a response. Please try again with some diffrent query"}, status=status.HTTP_200_OK)
+        
         return Response({"response": response["output"]}, status=status.HTTP_200_OK)
 
     except AgentConfig.DoesNotExist:
         return Response({"error": f"Agent with id {agent_id} not found."}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # Handle unexpected errors
+        logger.error(f"Unexpected error: {str(e)}")
+        return Response({"error": "Something went wrong, please try again."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class SetLLMApiKeyView(APIView):
-    """
-    Set or update API key for a specific LLM provider.
-    """
+class ChatHistoryPagination(PageNumberPagination):
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
-    @swagger_auto_schema(
-        operation_summary="Set LLM API key",
-        operation_description="Sets or updates an API key for a specified LLM provider and model.",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                "provider": openapi.Schema(
-                    type=openapi.TYPE_STRING,
-                    enum=[choice[0] for choice in LLMProvider.choices],
-                    description="LLM provider (e.g., openai, groq, ...)"
-                ),
-                "api_key": openapi.Schema(
-                    type=openapi.TYPE_STRING,
-                    description="API key for the LLM provider"
-                ),
-                "model": openapi.Schema(
-                    type=openapi.TYPE_STRING,
-                    description="Model name (optional, default: 'default-model')"
-                ),
-            },
-            required=["provider", "api_key"]
+@swagger_auto_schema(
+    method='get',
+    operation_description="Retrieve the chat history of a specific AI agent.",
+    manual_parameters=[
+        openapi.Parameter(
+            'agent_id', openapi.IN_QUERY, description="UUID of the agent",
+            type=openapi.TYPE_STRING, required=True
         ),
-        responses={
-            200: openapi.Response(description="API key saved or updated successfully"),
-            400: openapi.Response(description="Invalid input"),
+        openapi.Parameter(
+            'page', openapi.IN_QUERY, description="Page number for pagination",
+            type=openapi.TYPE_INTEGER, required=False
+        ),
+        openapi.Parameter(
+            'page_size', openapi.IN_QUERY, description="Number of records per page",
+            type=openapi.TYPE_INTEGER, required=False
+        ),
+    ],
+    responses={
+        200: openapi.Response(
+            description='Chat history',
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'count': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'next': openapi.Schema(type=openapi.FORMAT_URI),
+                    'previous': openapi.Schema(type=openapi.FORMAT_URI),
+                    'results': openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'message': openapi.Schema(type=openapi.TYPE_STRING),
+                                'role': openapi.Schema(type=openapi.TYPE_STRING),
+                                'timestamp': openapi.Schema(type=openapi.FORMAT_DATETIME),
+                            }
+                        )
+                    )
+                }
+            )
+        ),
+        400: openapi.Response(description='Bad request'),
+        404: openapi.Response(description='Agent not found'),
+    }
+)
+@api_view(["GET"])
+def chat_history(request):
+    agent_id = request.GET.get("agent_id")
+
+    if not agent_id:
+        return Response({"error": "agent_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        agent_uuid = uuid.UUID(agent_id)
+    except ValueError:
+        return Response({"error": "Invalid UUID format for agent_id."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        agent = AgentConfig.objects.get(id=agent_uuid)
+    except AgentConfig.DoesNotExist:
+        return Response({"error": f"Agent with id {agent_id} not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    queryset = ChatHistory.objects.filter(agent=agent).order_by("-timestamp")
+
+    paginator = ChatHistoryPagination()
+    paginated_qs = paginator.paginate_queryset(queryset, request)
+    serialized = [
+        {
+            "message": entry.message,
+            "role": entry.role,
+            "timestamp": entry.timestamp,
         }
-    )
-    def post(self, request):
-        provider = request.data.get("provider")
-        api_key = request.data.get("api_key")
-        model = request.data.get("model", "default-model")
-
-        if not provider or not api_key:
-            return Response(
-                {"error": "Both 'provider' and 'api_key' are required."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if provider not in LLMProvider.values:
-            return Response(
-                {"error": f"Invalid provider '{provider}'."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        _, created = LLMConfig.objects.update_or_create(
-            provider=provider,
-            model=model,
-            defaults={"api_key": api_key}
-        )
-
-        return Response({
-            "message": "API key saved successfully.",
-            "provider": provider,
-            "model": model,
-            "created": created,
-        }, status=status.HTTP_200_OK)
+        for entry in paginated_qs
+    ]
+    return paginator.get_paginated_response(serialized)

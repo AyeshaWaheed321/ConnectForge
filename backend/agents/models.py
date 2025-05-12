@@ -23,7 +23,7 @@ class AgentConfig(models.Model):
     tags = models.JSONField(default=list)
     llm = models.OneToOneField(LLMConfig, on_delete=models.CASCADE, default=None)
     system_message = models.TextField(null=True, blank=True, default="You are a helpful AI assistant with access to tools.")
-    n_messages = models.PositiveIntegerField(default=5)
+    n_history_messages = models.PositiveIntegerField(default=4)
     mcp_server = models.JSONField(default=dict)
 
 
@@ -32,3 +32,13 @@ class Tool(models.Model):
     agent = models.ForeignKey(AgentConfig, related_name='tools', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.TextField()
+    
+class ChatHistory(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    agent = models.ForeignKey(AgentConfig, on_delete=models.CASCADE)
+    message = models.TextField()
+    role = models.CharField(max_length=10, choices=[('human', 'Human'), ('ai', 'AI')])
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Message from {self.role.capitalize()} at {self.timestamp}"
