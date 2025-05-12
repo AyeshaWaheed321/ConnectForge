@@ -143,7 +143,7 @@ To add or extend tools:
 - ⚠️ Free-tier LLMs may sometimes result in failed responses.
 - 🔄 System prompt tuning may be necessary for consistent results.
 - 🧪 Toolchain compatibility has not been verified with all open-source MCP servers.
-- ✅ Currently supports `npx`, `uv`, and `python`-based MCP tool connectors.
+- ✅ Currently supports `npx`, `python`-based MCP tool connectors.
 
 ## 📖 Resources
 
