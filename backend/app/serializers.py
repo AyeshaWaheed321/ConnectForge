@@ -4,7 +4,7 @@ from venv import logger
 from rest_framework import serializers
 
 from .utils import get_tools
-from .models import AgentConfig, LLMConfig, Tool
+from .models import AgentActivityLog, AgentConfig, AgentMetric, LLMConfig, Tool
 
 logger  = logging.getLogger(__name__)
 class LLMConfigSerializer(serializers.ModelSerializer):
@@ -94,3 +94,26 @@ class ToolSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tool
         fields = ['name', 'description']
+
+class AgentActivityLogSerializer(serializers.ModelSerializer):
+    agent = serializers.SerializerMethodField()
+    class Meta:
+        model = AgentActivityLog
+        fields = ['id', 'agent', 'action', 'timestamp', 'description', 'metadata']
+
+    def get_agent(self, obj):
+        return obj.agent.agent_name if obj.agent else None
+
+class AgentMetricSerializer(serializers.ModelSerializer):
+    average_response_time = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AgentMetric
+        fields = [
+            'id', 'agent', 'date',
+            'total_requests', 'total_success', 'total_failures',
+            'total_response_time_ms', 'average_response_time',
+        ]
+
+    def get_average_response_time(self, obj):
+        return obj.average_response_time()

@@ -12,14 +12,16 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
+from rest_framework import generics
+from django.db.models import Sum, Count
 
 from .mcp.client import agent_executor
 
 from .utils import get_tools, log_activity, update_metrics
 
-from .models import ActivityEvents, AgentConfig, ChatHistory, Tool
+from .models import ActivityEvents, AgentActivityLog, AgentConfig, AgentMetric, ChatHistory, Tool
 
-from .serializers import AgentConfigCoreSerializer, AgentConfigWrapperSerializer, ToolSerializer
+from .serializers import AgentActivityLogSerializer, AgentConfigCoreSerializer, AgentConfigWrapperSerializer, AgentMetricSerializer, ToolSerializer
 import json
 from drf_yasg import openapi
 from rest_framework.decorators import api_view
@@ -322,7 +324,7 @@ def chat(request):
         logger.exception("Unexpected error in chat view")
         return Response({"error": "Something went wrong, please try again."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class ChatHistoryPagination(PageNumberPagination):
+class CustomPagination(PageNumberPagination):
     page_size = 20
     page_size_query_param = 'page_size'
     max_page_size = 100
@@ -388,9 +390,9 @@ def chat_history(request):
     except AgentConfig.DoesNotExist:
         return Response({"error": f"Agent with id {agent_id} not found."}, status=status.HTTP_404_NOT_FOUND)
 
-    queryset = ChatHistory.objects.filter(agent=agent).order_by("-timestamp", "role_order")
+    queryset = ChatHistory.objects.filter(agent=agent).order_by("timestamp", "role_order")
 
-    paginator = ChatHistoryPagination()
+    paginator = CustomPagination()
     paginated_qs = paginator.paginate_queryset(queryset, request)
 
     paginated_qs = paginated_qs or []
@@ -459,3 +461,57 @@ def delete_chat_history(request):
             metadata={"error": str(e)}
         )
         return Response({"error": f"Error occurred while deleting chat history: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+class RecentActivityLogsView(generics.ListAPIView):
+    queryset = AgentActivityLog.objects.order_by('-timestamp')
+    serializer_class = AgentActivityLogSerializer
+    pagination_class = CustomPagination
+
+    @swagger_auto_schema(
+        operation_description="Get a paginated list of recent agent activity logs (ordered by timestamp).",
+        responses={200: AgentActivityLogSerializer(many=True)}
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+class AgentMetricsView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Get summary metrics for all agents including total requests, average response time, total successes, and total failures.",
+        responses={200: openapi.Response(
+            description="Summary metrics",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'total_agents': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'total_success': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'total_failures': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'average_response_time': openapi.Schema(type=openapi.TYPE_NUMBER, format='float'),
+                }
+            )
+        )}
+    )
+    def get(self, request):
+        # Correct: count all AgentConfig instances
+        total_agents = AgentConfig.objects.count()
+
+        # Aggregate metrics from AgentMetric
+        summary = AgentMetric.objects.aggregate(
+            total_requests=Sum('total_requests'),
+            total_success=Sum('total_success'),
+            total_failures=Sum('total_failures'),
+            total_response_time=Sum('total_response_time_ms'),
+        )
+
+        total_requests = summary['total_requests'] or 0
+        avg_response_time = (
+            summary['total_response_time'] / total_requests
+            if total_requests else 0
+        )
+
+        return Response({
+            'total_agents': total_agents,
+            'total_success': summary['total_success'] or 0,
+            'total_failures': summary['total_failures'] or 0,
+            'average_response_time': round(avg_response_time, 2),
+        })
