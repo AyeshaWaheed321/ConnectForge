@@ -67,12 +67,17 @@ class AgentConfigViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         agent_core_data = AgentConfigCoreSerializer(instance).data
 
+        # Remove 'id' and 'agent_name' from the serialized data
+        agent_core_data.pop('id', None)
+        agent_core_data.pop('agent_name', None)
+
         response_data = {
             "agentConfig": agent_core_data,
             "mcpServers": instance.mcp_server,
             "tool_names": [tool.name for tool in instance.tools.all()]
         }
         return Response(response_data)
+
 
     @swagger_auto_schema(
         operation_summary="Register a new agent",
