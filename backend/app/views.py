@@ -74,7 +74,6 @@ class AgentConfigViewSet(viewsets.ModelViewSet):
         response_data = {
             "agentConfig": agent_core_data,
             "mcpServers": instance.mcp_server,
-            "tool_names": [tool.name for tool in instance.tools.all()]
         }
         return Response(response_data)
 

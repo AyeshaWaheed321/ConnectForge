@@ -13,6 +13,7 @@ class LLMConfig(models.Model):
     temperature = models.FloatField(default=0)
     timeout = models.PositiveIntegerField(default=10)
     max_retries = models.PositiveIntegerField(default=2)
+    n_history_messages = models.PositiveIntegerField(default=4)
     api_key = models.CharField(max_length=512, null=True, blank=True)  # stored but excluded from serializer
 
 
@@ -23,7 +24,6 @@ class AgentConfig(models.Model):
     tags = models.JSONField(default=list)
     llm = models.OneToOneField(LLMConfig, on_delete=models.CASCADE, default=None)
     system_message = models.TextField(null=True, blank=True, default="You are a helpful AI assistant with access to tools.")
-    n_history_messages = models.PositiveIntegerField(default=4)
     mcp_server = models.JSONField(default=dict)
 
 

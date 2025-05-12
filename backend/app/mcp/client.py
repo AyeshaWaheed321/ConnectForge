@@ -110,7 +110,7 @@ async def run_client(query: str, agent: AgentConfig):
         "timeout": llm_config.timeout,
         "max_retries": llm_config.max_retries,
         "system_message": agent.system_message,
-        "n_history_messages": agent.n_history_messages,
+        "n_history_messages": llm_config.n_history_messages,
     }
 
     await log_activity_async(
