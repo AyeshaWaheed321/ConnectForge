@@ -35,6 +35,7 @@ const Chat: React.FC = () => {
   const [inputValue, setInputValue] = useState("");
   const [page, setPage] = useState(1);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const [isAgentTyping, setIsAgentTyping] = useState(false);
 
   const { [AGENT_CHAT_HISTORY + LOADING]: chatLoading = false } = useSelector(
     (state: any) => state?.crud
@@ -97,10 +98,13 @@ const Chat: React.FC = () => {
       };
       setMessages((prev) => [...prev, humanMessage]);
       sendToAI(inputValue);
+      setInputValue(""); // Clear input immediately after sending
     }
   };
 
   const sendToAI = (val: string) => {
+    setIsAgentTyping(true);
+
     const payload = {
       message: val,
       agent_id: agentId,
@@ -118,10 +122,12 @@ const Chat: React.FC = () => {
 
         setMessages((prev) => [...prev, aiMessage]);
         setInputValue("");
+        setIsAgentTyping(false); // Hide loader
       },
       (error: any) => {
         AntMessage.error("Error sending message.");
         console.error("Send error:", error);
+        setIsAgentTyping(false); // Hide loader on error too
       }
     );
   };
@@ -133,13 +139,6 @@ const Chat: React.FC = () => {
           Back to Agents
         </Button>
         <h1>Chat with your Agent</h1>
-        <Button
-          type="primary"
-          icon={<Mic size={16} />}
-          className="voice-command"
-        >
-          Voice Command
-        </Button>
       </div>
 
       <div className="chat-container">
@@ -154,6 +153,21 @@ const Chat: React.FC = () => {
               </div>
             </div>
           ))}
+          {isAgentTyping && (
+            <div className="message">
+              <div className="message-content agent loading-bubble">
+                <span className="typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+                <div className="message-meta">
+                  <span className="role">Agent</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div ref={messagesEndRef} />
         </div>
 

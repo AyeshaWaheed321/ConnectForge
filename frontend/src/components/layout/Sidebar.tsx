@@ -43,13 +43,6 @@ const Sidebar: React.FC<SidebarProps> = () => {
         >
           Agents
         </Menu.Item>
-        <Menu.Item
-          key="/chat"
-          icon={<MessageSquare size={16} />}
-          onClick={() => handlePageChange("/chat")}
-        >
-          Chat
-        </Menu.Item>
       </Menu>
       <div className="sidebar-footer">ConnectForge v1.0.0</div>
     </Sider>

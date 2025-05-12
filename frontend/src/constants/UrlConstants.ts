@@ -4,4 +4,6 @@ export default {
   AGENT_CHAT: "chat/",
   AGENT_BY_ID: "agents/:id/",
   AGENT_CHAT_HISTORY: "chat/history/",
+  DASHBOARD_ANALYTICS: "dashboard/analytics/",
+  DASHBOARD_LOGS: "dashboard/logs/",
 };
