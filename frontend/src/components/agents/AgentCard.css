@@ -1,0 +1,119 @@
+.agent-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  padding: 6px !important;
+}
+
+.agent-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.agent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.agent-name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1f2c;
+}
+
+.agent-provider {
+  font-size: 14px;
+  color: #8a898c;
+  margin-bottom: 8px;
+}
+
+.agent-description {
+  margin-bottom: 16px;
+  color: #403e43;
+  font-size: 14px;
+}
+
+.agent-tools-heading {
+  font-weight: 500;
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 6px;
+}
+
+.agent-tags-wrapper {
+  overflow: hidden;
+  max-height: 36em; /* assumes ~1.8em per line, adjust based on font-size/line-height */
+  position: relative;
+}
+
+.agent-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.agent-tag {
+  background-color: #e5deff;
+  color: #7e69ab;
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.more-tag {
+  background: #d9d9d9;
+  color: #333;
+  font-weight: 500;
+}
+
+.agent-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  margin-top: 16px;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 12px;
+}
+
+.action-button {
+  color: #6a6a6a;
+  border: none;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  min-width: 32px;
+  height: 32px;
+}
+
+.action-button:hover {
+  color: #9b87f5;
+  background-color: #f6f6f6;
+}
+
+.delete-button:hover {
+  color: #ff4d4f;
+}
+
+.status-badge {
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-weight: 500;
+}
+
+.status-badge.connected {
+  background-color: #4caf50;
+  color: white;
+}
+
+.status-badge.disconnected {
+  background-color: #ffdee2;
+  color: #f44336;
+}

@@ -1,5 +1,10 @@
 {
   "DASHBOARD": "Dashboard",
-  "ACTIVITY_OVERVIEW":"Activity Overview",
-  "AGENTS":"Agents"
+  "ACTIVITY_OVERVIEW": "Activity Overview",
+  "AGENTS": "Agents",
+  "ADD_AGENT": "Add Agent",
+  "AGENT_MODAL_DESCRIPTION": "Create a new agent by providing its JSON configuration. Your submission will be reviewed before being made available.",
+  "CREATE_AGENT": "Create Agent",
+  "CANCEL": "Cancel",
+  "SAVE_CHANGES": "Save"
 }

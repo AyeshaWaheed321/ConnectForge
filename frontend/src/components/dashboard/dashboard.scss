@@ -1,14 +1,13 @@
-@import '../../styles/variables.scss';
+@import "../../styles/variables.scss";
 
 .dashboard {
   h1 {
     margin-bottom: $spacing-xl;
     font-weight: 500;
-    font-size: 24px;       // Approximate height of 36px depending on font
-    line-height: 36px;     // Matches height from Figma
-
+    font-size: 24px; // Approximate height of 36px depending on font
+    line-height: 36px; // Matches height from Figma
   }
-  
+
   .dashboard-sections {
     margin-top: $spacing-xl;
   }
@@ -89,51 +88,102 @@
     }
   }
 }
-
-
 .activity-overview {
   background: #fff;
   border-radius: $border-radius-lg;
   padding: $spacing-lg;
-  
+  max-height: 400px; // Adjust as needed
+  overflow-y: auto;
+
+  // Hide scrollbar visually but keep accessibility
+  &::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+  }
+
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  .activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+
   .activity-item {
-    padding: $spacing-md 0;
-    border-bottom: 1px solid $border-color;
-    
-    &:last-child {
-      border-bottom: none;
+    position: relative;
+    padding: $spacing-md;
+    border: 1px solid $border-color;
+    border-radius: $border-radius-lg;
+    background: #fff;
+
+    .activity-tag {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-weight: 500;
+      text-transform: capitalize;
+      color: #fff;
+
+      &.tag--success {
+        background-color: #00b96b;
+      }
+      &.tag--error {
+        background-color: #d8000c;
+      }
+      &.tag--warning {
+        background-color: #ffb020;
+      }
+      &.tag--info {
+        background-color: #1890ff;
+      }
+      &.tag--muted {
+        background-color: #999;
+      }
     }
-    
+
     .activity-content {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      
+
       .activity-main {
         flex: 1;
       }
-      
+
       .activity-title {
         font-weight: 500;
         margin-bottom: $spacing-xs;
         display: flex;
         align-items: center;
-        
+
         .activity-icon {
           margin-right: $spacing-sm;
           color: $primary-color;
         }
       }
-      
-      .activity-meta {
+
+      .activity-meta-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         font-size: $font-size-sm;
         color: $text-color-secondary;
-        margin-bottom: 0;
-      }
-      
-      .activity-time {
-        color: $text-color-secondary;
-        font-size: $font-size-sm;
+        margin-top: 4px;
+
+        .activity-meta {
+          margin: 0;
+        }
+
+        .activity-timestamp {
+          white-space: nowrap;
+          font-weight: 500;
+          font-size: 12px;
+          color: #666;
+        }
       }
     }
   }
@@ -143,55 +193,55 @@
   background: #fff;
   border-radius: $border-radius-lg;
   padding: $spacing-lg;
-  
+
   .status-section {
     margin-bottom: $spacing-xl;
-    
+
     &:last-child {
       margin-bottom: 0;
     }
-    
+
     .status-section-title {
       font-weight: 500;
       margin-bottom: $spacing-md;
     }
   }
-  
+
   .status-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: $spacing-md;
-    
+
     &:last-child {
       margin-bottom: 0;
     }
-    
+
     .status-label {
       margin: 0;
     }
-    
+
     .status-value {
       font-weight: 500;
     }
   }
-  
+
   .resource-item {
     margin-bottom: $spacing-md;
-    
+
     &:last-child {
       margin-bottom: 0;
     }
-    
+
     .resource-header {
       display: flex;
       justify-content: space-between;
       margin-bottom: $spacing-xs;
-      
+
       .resource-label {
         margin: 0;
       }
-      
+
       .resource-value {
         font-weight: 500;
       }

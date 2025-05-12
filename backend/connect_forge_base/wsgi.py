@@ -1,5 +1,5 @@
 """
-WSGI config for agent_api project.
+WSGI config for connect_forge_base project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'agent_api.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'connect_forge_base.settings')
 
 application = get_wsgi_application()

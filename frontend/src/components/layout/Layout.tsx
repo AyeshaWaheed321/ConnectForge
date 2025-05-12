@@ -1,39 +1,29 @@
-import React, { useState } from 'react';
-import { Layout as AntLayout } from 'antd';
-import Sidebar from './Sidebar';
-import Dashboard from '../dashboard/Dashboard';
-import Agents from '../agents/Agents';
-import Chat from '../chat/Chat';
-import './layout.scss';
+import React from "react";
+import { Layout as AntLayout } from "antd";
+import { Routes, Route } from "react-router-dom";
+import Sidebar from "./Sidebar";
+import Dashboard from "../dashboard/Dashboard";
+import Agents from "../agents/Agents";
+import "./layout.scss";
 
 // constants
-import { ROUTES } from '../../constants/Routes';
+import { ROUTES } from "../../constants/Routes";
+import Chat from "../chat/Chat";
 
 const { Content } = AntLayout;
 
 const Layout: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState('dashboard');
-
-  const renderContent = () => {
-    switch (currentPage) {
-      case ROUTES.DASHBOARD:
-        return <Dashboard />;
-      case ROUTES.AGENTS:
-        return <Agents />;
-      case ROUTES.CHAT:
-        return <Dashboard />;
-        // return <Chat />;
-      default:
-        return <Dashboard />;
-    }
-  };
-
   return (
     <AntLayout className="app-layout">
-      <Sidebar currentPage={currentPage} onPageChange={setCurrentPage} />
+      <Sidebar />
       <AntLayout>
         <Content className="layout-content">
-          {renderContent()}
+          <Routes>
+            {/* Define your routes here */}
+            <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
+            <Route path={ROUTES.AGENTS} element={<Agents />} />
+            <Route path={ROUTES.CHAT + "/:agentId"} element={<Chat />} />
+          </Routes>
         </Content>
       </AntLayout>
     </AntLayout>

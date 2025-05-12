@@ -1,9 +1,11 @@
-
 .agents-screen {
-  padding: 24px;
-  background-color: #f8f9fb;
+  display: flex;
+  flex-direction: column;
+  height: 100vh; // Full viewport height
+  padding: 10px 18px;
 
   .agents-header {
+    flex-shrink: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -29,9 +31,18 @@
   }
 
   .agents-grid {
+    overflow-y: auto;
+    padding-right: 4px; // Optional: prevent scrollbar from overlapping content
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
+
+    /* Hide scrollbar */
+    scrollbar-width: none; // Firefox
+    -ms-overflow-style: none; // IE 10+
+    &::-webkit-scrollbar {
+      display: none; // Chrome, Safari
+    }
   }
 
   .agent-card {

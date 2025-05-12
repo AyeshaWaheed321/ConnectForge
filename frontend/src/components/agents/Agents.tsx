@@ -1,131 +1,141 @@
-import React, { useState } from 'react';
-import { Button, Modal, Form, Input, Card, Tag, Tooltip } from 'antd';
-import { MessageSquare, Trash2, Pause, Play, ArrowLeft } from 'lucide-react';
-import './agents.scss';
+import React, { useEffect, useState } from "react";
+import { Button, message } from "antd";
+import "./agents.scss";
 
 // Components
-import Chat from '../chat/Chat';
-import LOCALIZATION from '../../services/LocalizationService';
+import AgentModal from "./AddAgentModal";
+import AgentCard from "./AgentCard";
+import Loading from "../common/Loader";
+
+// Constants
+import URLS from "../../constants/UrlConstants";
+import { REDUX_STATES } from "../../constants/ReduxStates";
+
+// Redux
+import useAppDispatch from "../../hooks/useAppDispatch";
+import { useSelector } from "react-redux";
+
+// Actions
+import {
+  getAction,
+  postAction,
+  deleteAction,
+} from "../../store/actions/crudActions";
+
+// Localization
+import LOCALIZATION from "../../services/LocalizationService";
+
+const { AGENTS, RESPONSE, LOADING, ERROR } = REDUX_STATES || {};
 
 const Agents: React.FC = () => {
+  const dispatch = useAppDispatch();
+
+  // Redux States
+  const {
+    [AGENTS + RESPONSE]: agentsList = {},
+    [AGENTS + LOADING]: agentsListLoading = false,
+    [AGENTS + ERROR]: agentsListError = false,
+  } = useSelector((state: any) => state?.crud);
+
+  // Local State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [chatMode, setChatMode] = useState(false); // track chat screen
 
-  const agents = [
-    {
-      id: 1,
-      name: 'GitHub Agent',
-      provider: 'github',
-      description: 'Monitors GitHub pull requests and provides summaries and analysis',
-      status: 'Connected',
-      tags: ['github', 'analyze', 'summarize'],
-    },
-    {
-      id: 2,
-      name: 'Slack Notifier',
-      provider: 'slack',
-      description: 'Sends notifications to Slack channels based on events',
-      status: 'Connected',
-      tags: ['slack'],
-    },
-    {
-      id: 3,
-      name: 'Jira Ticket Manager',
-      provider: 'jira',
-      description: 'Creates and updates Jira tickets based on natural language requests',
-      status: 'Not Connected',
-      tags: ['jira'],
-    },
-  ];
+  type AgentStatus = "Connected" | "Not Connected";
 
-  const handleSubmit = (values: any) => {
-    console.log('Form values:', values);
-    setIsModalOpen(false);
+  const getAgentList = () => {
+    return dispatch(getAction(URLS.AGENTS, {}, AGENTS));
   };
 
-  if (chatMode) {
-    return (
-     <Chat onBack={() => setChatMode(false)} />
-    );
+  useEffect(() => {
+    if (!agentsListLoading && !agentsList?.data) {
+      getAgentList();
+    }
+  }, []);
+
+  interface Agent {
+    id: string;
+    agent_name: string;
+    description: string;
+    status: AgentStatus;
+    tool_names: string[];
   }
+
+  const handleSubmit = (values: any) => {
+    dispatch(postAction(URLS.AGENTS, values, null, AGENTS)).then(
+      () => {
+        message.success("Agent is created successfully");
+        getAgentList().then(() => {
+          setIsModalOpen(false);
+        });
+      },
+      (error: any) => {
+        setIsModalOpen(false);
+        message.error("Error creating agent. Please try again.");
+        console.error("Error creating agent:", error);
+      }
+    );
+  };
+
+  const handleDelete = (id: string) => {
+    dispatch(
+      deleteAction(URLS.AGENT_BY_ID.replace(":id", id), null, null, AGENTS)
+    ).then(
+      () => {
+        message.success("Agent is deleted successfully");
+        getAgentList();
+      },
+      (error: any) => {
+        message.error("Error in deleting agent. Please try again.");
+      }
+    );
+  };
 
   return (
     <div className="agents-screen">
+      {agentsListLoading && <Loading />}
+
       <div className="agents-header">
         <h1>{LOCALIZATION.AGENTS}</h1>
-        <Button 
-          type="primary" 
+        <Button
+          type="primary"
           onClick={() => setIsModalOpen(true)}
           className="configure-button"
         >
-          + Configure
+          {LOCALIZATION.ADD_AGENT}
         </Button>
       </div>
 
       <div className="agents-grid">
-        {agents.map((agent) => (
-          <Card key={agent.id} className="agent-card">
-            <div className="agent-header">
-              <h3>{agent.name}</h3>
-              <Tag color={agent.status === 'Connected' ? 'success' : 'default'}>
-                {agent.status}
-              </Tag>
-            </div>
-            <p className="provider">{agent.provider}</p>
-            <p className="description">{agent.description}</p>
-            <div className="tags">
-              {agent.tags.map((tag) => (
-                <Tag key={tag}>{tag}</Tag>
-              ))}
-            </div>
-            <div className="agent-actions">
-              {agent.status === 'Connected' ? (
-                <Button icon={<Pause size={16} />}>Pause</Button>
-              ) : (
-                <Button icon={<Play size={16} />}>Start</Button>
-              )}
-              <Tooltip title="Chat">
-                <Button icon={<MessageSquare size={16} />} onClick={() => setChatMode(true)} />
-              </Tooltip>
-              <Tooltip title="Delete">
-                <Button icon={<Trash2 size={16} />} danger />
-              </Tooltip>
-            </div>
-          </Card>
-        ))}
+        {Array.isArray(agentsList?.data) && agentsList.data.length > 0 ? (
+          agentsList.data.map((agent: Agent) => (
+            <AgentCard
+              id={agent.id}
+              key={agent.id}
+              name={agent.agent_name}
+              description={agent.description}
+              status="Connected"
+              tags={agent.tool_names}
+              handleDelete={handleDelete}
+            />
+          ))
+        ) : !agentsListLoading ? (
+          <p className="empty-state">No agents available.</p>
+        ) : null}
       </div>
 
-      <Modal
-        title="Configure New Agent"
-        open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
-        footer={null}
-      >
-        <Form layout="vertical" onFinish={handleSubmit}>
-          <Form.Item
-            label="Name"
-            name="name"
-            rules={[{ required: true, message: 'Please enter agent name' }]}
-          >
-            <Input placeholder="Enter agent name" />
-          </Form.Item>
-          <Form.Item
-            label="Email"
-            name="email"
-            rules={[
-              { required: true, message: 'Please enter email' },
-              { type: 'email', message: 'Please enter a valid email' }
-            ]}
-          >
-            <Input placeholder="Enter email" />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block>
-              Submit
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
+      <AgentModal
+        visible={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmit}
+      />
+
+      {agentsListError && (
+        <div className="error-message">
+          <p>
+            Failed to load agents. Please check your network or try again later.
+          </p>
+        </div>
+      )}
     </div>
   );
 };

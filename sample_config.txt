@@ -1,0 +1,67 @@
+{
+  "agentConfig": {
+    "agent_name": "GitHub AI Assistant",  // Required: A unique name for the agent.
+    "description": "An AI-powered assistant that can perform GitHub actions, math calculations, and access local files.",  // Optional: Description of what the agent does.
+    "tags": ["code", "productivity"],  // Optional: List of tags for categorization; default is an empty list.
+    
+    "llm": {
+      "provider": "groq",  // Required: LLM provider, e.g., "groq" or "openai". Default is "groq".
+      "model": "llama-3.1-8b-instant",  // Required: Model name offered by the provider.
+      "max_tokens": 1000,  // Optional: Maximum tokens in a response; default is 500.
+      "temperature": 0,  // Optional: Controls randomness (0 = deterministic); default is 0.
+      "timeout": 10,  // Optional: Max request timeout in seconds; default is 10.
+      "max_retries": 2,  // Optional: Max retry attempts on failure; default is 2.
+      "n_history_messages": 4  // Optional: Number of past messages to include in agent chat context; default is 4.
+    },
+
+    "prompt": {
+      "system_message": "You are a helpful assistant with access to tools. Use tools when needed. After getting the required result from a tool, Return the final answer to the user and end your response. Do not call the tool again. If you are unsure about the answer, ask the user for clarification. Make sure the answer is related to the question."  // Optional: Custom system prompt for the agent; default is a generic helper prompt.
+    }
+  },
+
+  "mcpServers": {
+    // Example of a Stdio connector
+    "github": {
+      // Required for Stdio: base command (e.g., "npx", "python3").
+      "command": "npx",
+
+      // Required for Stdio: list of arguments passed to the command.
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+
+      // Optional. Environment variables required by the tool.
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "your_token_here"
+      }
+    },
+
+    // Example of an HTTP connector
+    "web-search": {
+      // Required for HTTP connector: base URL of the tool server.
+      "url": "https://example.com/api",
+
+      // Optional. HTTP headers to include in requests.
+      "headers": {
+        "Authorization": "Bearer my_api_key"
+      },
+
+      // Optional. Auth token used directly (alternative to headers).
+      "auth_token": "my_api_key"
+    },
+
+    // Example of a WebSocket connector
+    "realtime-agent": {
+      // Required for WebSocket connector.
+      "ws_url": "wss://agent.example.com/ws",
+
+      // Optional. Headers for the WS connection.
+      "headers": {
+        "x-agent-id": "agent123"
+      },
+
+      // Optional. Auth token for connection.
+      "auth_token": "my_ws_token"
+    }
+
+    // Add more mcp server configurations to either make it multi-agent or extend the functionality of external mcp servers
+  }
+}

@@ -1,8 +1,18 @@
 
+import axios, { AxiosError } from 'axios';
+
+
 export function getBaseUrl( url: string){
-  // Dummy condition, will remove with actual api
-  if (url.includes("api")) {
-    return "https://api.example.com/";
+  return "http://localhost:8000/api/";  
+}
+
+
+export function handleError(error: any) {
+  if (axios.isAxiosError(error)) {
+        // If it's an axios error, get a more specific message
+        const axiosError = error as AxiosError;
+        const errorMessage = axiosError.message || "Network Error";
+        return errorMessage;
   }
-  return "https://example.com/";
+  throw error;
 }

@@ -48,21 +48,73 @@ const crudReducer = (state = initialState, action: any) => {
         [get_keyE + ERROR]: get_Error,
       };
 
-    // Add other cases similar to your example...
+        //Request
+    case CRUD_ACTION.POST_REQUEST:
+      const post_keyR = action?.payload?.key || DEFAULT_POST_KEY;
 
-    case CRUD_ACTION.UPDATE_KEY_DATA:
-      const update_key = action?.payload?.key || DEFAULT_SELECTED_KEY;
-      const update_data = action?.payload?.data;
       return {
         ...state,
-        [update_key + RESPONSE]: update_data,
-        [update_key + PARAMS]: update_data,
-        [update_key + 'Success']: true,
+        [post_keyR + LOADING]: true,
+        [post_keyR + ERROR]: false,
       };
 
-    case CRUD_ACTION.RESET_KEY_DATA:
-      return initialState;
+    // Success
+    case CRUD_ACTION.POST_SUCCESS:
+      const post_keyS = action?.payload?.key || DEFAULT_POST_KEY;
+      const post_responseS = action?.payload?.response;
 
+      return {
+        ...state,
+        [post_keyS + LOADING]: false,
+        [post_keyS + ERROR]: false,
+        [post_keyS + RESPONSE]: post_responseS,
+      };
+
+    // Failure
+    case CRUD_ACTION.POST_FAILURE:
+      const post_keyE = action?.payload?.key || DEFAULT_POST_KEY;
+      const post_error = action?.payload?.error?.response || EMPTY_ERROR_OBJECT;
+
+      return {
+        ...state,
+        [post_keyE + LOADING]: false,
+        [post_keyE + ERROR]: post_error,
+      };
+
+          /* DELETE */
+    //Request
+    case CRUD_ACTION.DELETE_REQUEST:
+      const delete_keyR = action?.payload?.key || DEFAULT_DELETE_KEY;
+
+      return {
+        ...state,
+        [delete_keyR + LOADING]: true,
+        [delete_keyR + ERROR]: false,
+      };
+
+    // Success
+    case CRUD_ACTION.DELETE_SUCCESS:
+      const delete_keyS = action?.payload?.key || DEFAULT_DELETE_KEY;
+      const delete_responseS = action?.payload?.response;
+
+      return {
+        ...state,
+        [delete_keyS + LOADING]: false,
+        [delete_keyS + ERROR]: false,
+        [delete_keyS + RESPONSE]: delete_responseS,
+      };
+
+          // Failure
+    case CRUD_ACTION.DELETE_FAILURE:
+      const delete_keyE = action?.payload?.key || DEFAULT_DELETE_KEY;
+      const delete_error =
+        action?.payload?.error?.response || EMPTY_ERROR_OBJECT;
+
+      return {
+        ...state,
+        [delete_keyE + LOADING]: false,
+        [delete_keyE + ERROR]: delete_error,
+      };
     default:
       return state;
   }

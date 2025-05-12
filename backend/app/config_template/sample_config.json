@@ -1,0 +1,28 @@
+{
+  "agentConfig": {
+    "agent_name": "GitHub AI Assistant",
+    "description": "An AI-powered assistant that can perform GitHub actions, math calculations, and access local files.",
+    "tags": ["health", "productivity"],
+    "llm": {
+      "provider": "groq",
+      "model": "llama-3.1-8b-instant",
+      "max_tokens": 500,
+      "temperature": 0,
+      "timeout": 10,
+      "max_retries": 2,
+      "n_history_messages": 4
+    },
+    "prompt": {
+      "system_message": "You are a helpful assistant with access to tools. Use tools when needed. After getting the required result from a tool, Return the final answer to the user and end your response. Do not call the tool again. If you are unsure about the answer, ask the user for clarification. Make sure the answer is related to the question."
+    }
+  },
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "your_token_here"
+      }
+    }
+  }
+}

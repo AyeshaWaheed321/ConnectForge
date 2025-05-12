@@ -1,14 +1,12 @@
-@import '../../styles/variables.scss';
+@import "../../styles/variables.scss";
 
 .app-layout {
-  height: 100vh;
-  overflow: hidden;
   display: flex;
 }
 .ant-layout-sider {
   background-color: $primary-color;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
-  
+
   .logo {
     height: 64px;
     padding: 16px;
@@ -16,7 +14,7 @@
     align-items: center;
     justify-content: flex-start;
     background: $primary-dark;
-    
+
     .logo-text {
       color: #fff;
       font-size: 18px;
@@ -24,19 +22,19 @@
       margin-left: $spacing-sm;
     }
   }
-  
+
   .ant-menu {
     background: transparent;
     border-right: none;
-    
+
     .ant-menu-item {
       color: rgba(255, 255, 255, 0.65);
       margin: 0;
-      
+
       &:hover {
         color: #fff;
       }
-      
+
       &.ant-menu-item-selected {
         background-color: $primary-light;
         color: #fff;

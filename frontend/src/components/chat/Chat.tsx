@@ -1,71 +1,177 @@
-import React, { useState } from 'react';
-import { Input, Button } from 'antd';
-import { Send, Mic, ArrowLeft } from 'lucide-react';
-import './chat.scss';
+// Chat.tsx
+import React, { useState, useEffect, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Input, Button, message as AntMessage } from "antd";
+import { Send, Mic, ArrowLeft } from "lucide-react";
+import "./chat.scss";
+
+// Constants
+import URLS from "../../constants/UrlConstants";
+import { REDUX_STATES } from "../../constants/ReduxStates";
+
+// Component
+import Loading from "../common/Loader";
+
+// Redux
+import useAppDispatch from "../../hooks/useAppDispatch";
+import { useSelector } from "react-redux";
+
+// Actions
+import { postAction, getAction } from "../../store/actions/crudActions";
+
+const { AGENT_CHAT, LOADING, AGENT_CHAT_HISTORY } = REDUX_STATES || {};
 
 interface Message {
   id: number;
   text: string;
-  sender: string;
-  timestamp: string;
+  role: "You" | "Agent";
 }
 
-interface ChatProps {
-  onBack: () => void;
-}
+const Chat: React.FC = () => {
+  const { agentId } = useParams(); // Get agent_id from route parameter
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState("");
+  const [page, setPage] = useState(1);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const [isAgentTyping, setIsAgentTyping] = useState(false);
 
-const Chat: React.FC<ChatProps> = ({ onBack }) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      text: 'I found 3 open pull requests. The latest one is #123 "Add user authentication feature" by JohnDoe.\n\nChanges include:\n- New user authentication API endpoints\n- Password hashing implementation\n- JWT token generation\n\nThere are 2 review comments requesting changes to the token expiration logic.',
-      sender: 'GitHub PR Agent',
-      timestamp: 'Just now'
+  const { [AGENT_CHAT_HISTORY + LOADING]: chatLoading = false } = useSelector(
+    (state: any) => state?.crud
+  );
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const mapRole = (role: string): "You" | "Agent" =>
+    role === "ai" ? "Agent" : "You";
+
+  useEffect(() => {
+    if (agentId) {
+      fetchChatHistory(page);
     }
-  ]);
-  const [inputValue, setInputValue] = useState('');
+  }, [agentId]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const fetchChatHistory = (pageNum: number) => {
+    const queryParams = {
+      agent_id: agentId,
+      page: pageNum,
+      page_size: 20,
+    };
+
+    dispatch(
+      getAction(
+        URLS.AGENT_CHAT_HISTORY,
+        { params: queryParams },
+        AGENT_CHAT_HISTORY
+      )
+    ).then(
+      (res: any) => {
+        const historyMessages: Message[] =
+          res?.data?.results?.map((msg: any) => ({
+            id: msg.id,
+            text: msg.message,
+            role: mapRole(msg.role),
+          })) || [];
+
+        setMessages(historyMessages);
+      },
+      (error: any) => {
+        console.error("Error fetching history:", error);
+        AntMessage.error("Failed to load chat history.");
+      }
+    );
+  };
 
   const handleSend = () => {
     if (inputValue.trim()) {
-      setMessages([
-        ...messages,
-        {
-          id: messages.length + 1,
-          text: inputValue,
-          sender: 'You',
-          timestamp: 'Just now'
-        }
-      ]);
-      setInputValue('');
+      const humanMessage: Message = {
+        id: messages.length + 1,
+        text: inputValue,
+        role: "You",
+      };
+      setMessages((prev) => [...prev, humanMessage]);
+      sendToAI(inputValue);
+      setInputValue(""); // Clear input immediately after sending
     }
+  };
+
+  const sendToAI = (val: string) => {
+    setIsAgentTyping(true);
+
+    const payload = {
+      message: val,
+      agent_id: agentId,
+    };
+
+    dispatch(postAction(URLS.AGENT_CHAT, payload, null, AGENT_CHAT)).then(
+      (res: any) => {
+        const response = res?.data?.response;
+
+        const aiMessage: Message = {
+          id: messages.length + 2,
+          text: response,
+          role: "Agent",
+        };
+
+        setMessages((prev) => [...prev, aiMessage]);
+        setInputValue("");
+        setIsAgentTyping(false); // Hide loader
+      },
+      (error: any) => {
+        AntMessage.error("Error sending message.");
+        console.error("Send error:", error);
+        setIsAgentTyping(false); // Hide loader on error too
+      }
+    );
   };
 
   return (
     <div className="chat-screen">
       <div className="chat-header-bar">
-        <Button icon={<ArrowLeft size={16} />} onClick={onBack}>
+        <Button icon={<ArrowLeft size={16} />} onClick={() => navigate(-1)}>
           Back to Agents
         </Button>
-        <h1>Chat with your Agents</h1>
-        <Button type="primary" icon={<Mic size={16} />} className="voice-command">
-          Voice Command
-        </Button>
+        <h1>Chat with your Agent</h1>
       </div>
 
       <div className="chat-container">
         <div className="messages">
           {messages.map((message) => (
             <div key={message.id} className="message">
-              <div className="message-content">
+              <div className={`message-content ${message.role.toLowerCase()}`}>
                 <p className="message-text">{message.text}</p>
                 <div className="message-meta">
-                  <span className="sender">{message.sender}</span>
-                  <span className="timestamp">{message.timestamp}</span>
+                  <span className="role">{message.role}</span>
                 </div>
               </div>
             </div>
           ))}
+          {isAgentTyping && (
+            <div className="message">
+              <div className="message-content agent loading-bubble">
+                <span className="typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+                <div className="message-meta">
+                  <span className="role">Agent</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
         </div>
+
+        {!!chatLoading && <Loading />}
 
         <div className="chat-input">
           <Input
