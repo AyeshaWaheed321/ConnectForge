@@ -3,7 +3,7 @@ import axios, { AxiosError } from 'axios';
 
 
 export function getBaseUrl( url: string){
-  return "http://localhost:8000/api/";
+  return "http://localhost:8000/api/";  
 }
 
 
