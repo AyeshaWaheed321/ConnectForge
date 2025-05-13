@@ -12,12 +12,12 @@ Before running the backend, make sure to configure your environment variables in
 - `DATABASE_URL`: This should point to the PostgreSQL database using the credentials defined in your Docker setup. Example:
 
 ```bash
-  DATABASE_URL=postgres://<user>:<password>@database:5432/<db-name>
+  DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
 ```
 
-- `OPENAI_API_KEY`: Your OpenAI API key.
+- `GROQ_API_KEY`: Your Groq API key to use LangChain Groq LLM provider (preferred)
 
-- `GROQ_API_KEY`: Your Groq API key.
+- `OPENAI_API_KEY`: Your OpenAI API key to use LangChain OpenAI LLM Provider
 
 Ensure all these variables are properly set before starting the backend services.
 
@@ -47,29 +47,6 @@ This project includes both backend and frontend services, and you can run them t
 
 Once the containers are up, you can access the project on your local machine by going to: `backend`
 This will run both the backend and frontend services on localhost using the Docker setup.
-
-## 🚀 Key Features
-
-- **Agent Registration**: Easily register agents using a configurable JSON structure compatible with Claude Desktop or any external MCP server.
-
-- **Multi-Agent Support**: Combine multiple MCP server configurations to extend functionality or run multiple agents concurrently.
-
-- **Dashboard Monitoring**: Track agent interactions and system performance via a dedicated UI.
-
-- **Chat History**: View historical conversations (single-agent only).
-
-- **Extendable Tools**: Add custom external tools by updating the `mcpServers` configuration block.
-
-- **Tool Chaining Support**: Supported in the MCP Chat Client.
-
-## 🛠 Tech Stack
-
-| Layer                 | Technology                 |
-| --------------------- | -------------------------- |
-| **Frontend**          | React                      |
-| **Backend API**       | Django REST Framework      |
-| **Agent Core**        | Python (`mcp-use` library) |
-| **LLM Orchestration** | LangChain                  |
 
 # 🧩 Agent Configuration
 
@@ -102,26 +79,154 @@ You can also view the full configuration example in [`sample_config.txt`](./samp
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "your_token_here"
       }
-    },
-    "web-search": {
-      "url": "https://example.com/api",
-      "headers": {
-        "Authorization": "Bearer my_api_key"
-      },
-      "auth_token": "my_api_key"
-    },
-    "realtime-agent": {
-      "ws_url": "wss://agent.example.com/ws",
-      "headers": {
-        "x-agent-id": "agent123"
-      },
-      "auth_token": "my_ws_token"
     }
   }
 }
 ```
 
-## 🌐 MCP Server Types Supported
+## ✅ Getting Started: Working Examples
+
+Here are tested and working examples of `mcpServers` configurations that you can regsiter via the UI directly when registering/editing the agents.
+Click to expand each section and copy-paste directly into your configuration JSON.
+
+### Github Agent
+
+  <details> <summary> GitHub </summary>
+
+```json
+"mcpServers": {
+  "github": {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-github"],
+    "env": {
+      "GITHUB_PERSONAL_ACCESS_TOKEN": "your_token_here"
+    }
+  },
+  "github-summarizer": {
+    "command": "python",
+    "args": ["/absolute/path/to/backend/app/mcp/servers/github.py"]
+  }
+}
+```
+
+> Make sure to replace provide your `GITHUB_PERSONAL_ACCESS_TOKEN`
+
+  </details>
+
+### Github-Extended Agent
+
+  <details> <summary> GitHub Extended </summary>
+  We have implemented a custom PR summarizer in our backend code which can be used to extend the tools of GitHub mcp server above by simply extending the mcpServers dictionary in UI when adding/editing the agent config as explained below:
+
+```json
+"mcpServers": {
+  "github": {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-github"],
+    "env": {
+      "GITHUB_PERSONAL_ACCESS_TOKEN": "your_token_here"
+    }
+  },
+  "github-summarizer": {
+    "command": "python",
+    "args": ["{REPO_BASE_PATH}/backend/app/mcp/servers/github.py"]
+  }
+}
+```
+
+> Note: Make sure to replace the `REPO_BASE_PATH` in "args" to enable it
+
+  </details>
+
+### PostgreSQL Agent
+
+  <details> <summary> PostgreSQL</summary>
+
+```json
+"mcpServers": {
+  "postgres": {
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-postgres",
+      "postgresql://localhost/mydb"
+    ]
+  }
+}
+
+```
+
+> Make sure the database connection string points to a valid running PostgreSQL instance.
+
+  </details>
+
+### Sequential Thinking Agent
+
+  <details> <summary>Sequential Thinking</summary>
+
+```json
+
+"mcpServers": {
+  "sequential-thinking": {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+  }
+}
+
+```
+
+  </details>
+
+### Filesystem Agent
+
+  <details> <summary>Filesystem</summary>
+
+```json
+"mcpServers": {
+  "filesystem": {
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-filesystem",
+      "/Users/username/Desktop",
+      "/path/to/other/allowed/dir"
+    ]
+  }
+}
+
+```
+
+> Make sure to replace `/Users/username/Desktop`, `/path/to/other/allowed/dir` with actual paths. Otherwise, it won't regsiter the tool successfully
+
+  </details>
+
+For more such examples, you can test available servers at: [Model Context Protocol (MCP) Servers]https://github.com/modelcontextprotocol/servers
+However, do note that not all would work as expected.
+
+# 🚀 Key Features
+
+- **Agent Registration**: Easily register agents using a configurable JSON structure compatible with Claude Desktop or any external MCP server.
+
+- **Multi-Agent Support**: Combine multiple MCP server configurations to extend functionality or run multiple agents concurrently.
+
+- **Dashboard Monitoring**: Track agent interactions and system performance via a dedicated UI.
+
+- **Chat History**: View historical conversations (single-agent only).
+
+- **Extendable Tools**: Add custom external tools by updating the `mcpServers` configuration block.
+
+- **Tool Chaining Support**: Supported in the MCP Chat Client.
+
+# 🛠 Tech Stack
+
+| Layer                 | Technology                 |
+| --------------------- | -------------------------- |
+| **Frontend**          | React                      |
+| **Backend API**       | Django REST Framework      |
+| **Agent Core**        | Python (`mcp-use` library) |
+| **LLM Orchestration** | LangChain                  |
+
+# 🌐 MCP Server Types Supported
 
 - **Stdio Connectors**: Run via tools like `npx`, `uv`, or `python3`.
 
@@ -143,7 +248,7 @@ To add or extend tools:
 - ⚠️ Free-tier LLMs may sometimes result in failed responses.
 - 🔄 System prompt tuning may be necessary for consistent results.
 - 🧪 Toolchain compatibility has not been verified with all open-source MCP servers.
-- ✅ Currently supports `npx`, `python`-based MCP tool connectors.
+- ✅ Currently supports `npx`, `uv`, `python`-based MCP tool connectors.
 
 ## 📖 Resources
 
