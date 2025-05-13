@@ -200,7 +200,7 @@ Click to expand each section and copy-paste directly into your configuration JSO
 
   </details>
 
-For more such examples, you can test available servers at: [Model Context Protocol (MCP) Servers]https://github.com/modelcontextprotocol/servers
+For more such examples, you can test available servers at: https://github.com/modelcontextprotocol/servers
 However, do note that not all would work as expected.
 
 # 🚀 Key Features
