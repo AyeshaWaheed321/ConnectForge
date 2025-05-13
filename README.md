@@ -47,7 +47,7 @@ This project includes both backend and frontend services, and you can run them t
 
 Once the containers are up, you can access the project on your local machine by going to: `backend`
 This will run both the backend and frontend services on localhost using the Docker setup.
-You will now be able to access the interactive interface running at `http://localhost:3000/agents`  
+You will now be able to access the interactive interface running at `http://localhost:3000/agents`
 
 # 🧩 Agent Configuration
 
@@ -85,7 +85,9 @@ You can also view the full configuration example in [`sample_config.txt`](./samp
 }
 ```
 
-## ✅ Getting Started: Working Examples
+> Modify variables in `agentConfig` section of json to play around with LLM configs and agent behaviour. This will come in handy especially when using free tier of Groq or OpenAI API Keys when running in errors or blockers during chat with agent.
+
+# ✅ Getting Started: Working Examples
 
 Here are tested and working examples of `mcpServers` configurations that you can regsiter via the UI directly when registering/editing the agents.
 Click to expand each section and copy-paste directly into your configuration JSON.
@@ -102,15 +104,11 @@ Click to expand each section and copy-paste directly into your configuration JSO
     "env": {
       "GITHUB_PERSONAL_ACCESS_TOKEN": "your_token_here"
     }
-  },
-  "github-summarizer": {
-    "command": "python",
-    "args": ["/absolute/path/to/backend/app/mcp/servers/github.py"]
   }
 }
 ```
 
-> Make sure to replace provide your `GITHUB_PERSONAL_ACCESS_TOKEN`
+> Make sure to replace provide your `GITHUB_PERSONAL_ACCESS_TOKEN`, Do not replace teh path in args when running in Docker.
 
   </details>
 
@@ -130,12 +128,15 @@ Click to expand each section and copy-paste directly into your configuration JSO
   },
   "github-summarizer": {
     "command": "python",
-    "args": ["{REPO_BASE_PATH}/backend/app/mcp/servers/github.py"]
+    "args": ["/app/app/mcp/servers/github.py"],
+    "env": {
+      "GITHUB_PERSONAL_ACCESS_TOKEN": "your_token_here"
+    }
   }
 }
 ```
 
-> Note: Make sure to replace the `REPO_BASE_PATH` in "args" to enable it
+> Note: No need to change file path in args as you will be running the app in docker container
 
   </details>
 
@@ -189,20 +190,27 @@ Click to expand each section and copy-paste directly into your configuration JSO
     "args": [
       "-y",
       "@modelcontextprotocol/server-filesystem",
-      "/Users/username/Desktop",
-      "/path/to/other/allowed/dir"
+      "/app/"
     ]
   }
 }
 
 ```
 
-> Make sure to replace `/Users/username/Desktop`, `/path/to/other/allowed/dir` with actual paths. Otherwise, it won't regsiter the tool successfully
+> NOTE: Do not replace path `/app/` when running with docker. Otherwise, you can specify as many files or directories you like in args
 
   </details>
 
 For more such examples, you can test available servers at: https://github.com/modelcontextprotocol/servers
 However, do note that not all would work as expected.
+
+# Example Prompts
+
+To get started with any agent after sucecssful agent registration from the interface, you can try few of the initial prompts:
+
+- List the tools you have along with their arguments or variables, if any
+- List down the tasks you can perform
+- List down the tools you have access to
 
 # 🚀 Key Features
 
@@ -246,7 +254,7 @@ To add or extend tools:
 ## ⚠️ Limitations
 
 - ❌ Multi-agent chat history is not yet supported.
-- ⚠️ Free-tier LLMs may sometimes result in failed responses.
+- ⚠️ Free-tier LLMs may sometimes result in failed responses or random delays
 - 🔄 System prompt tuning may be necessary for consistent results.
 - 🧪 Toolchain compatibility has not been verified with all open-source MCP servers.
 - ✅ Currently supports `npx`, `uv`, `python`-based MCP tool connectors.
