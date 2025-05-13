@@ -47,6 +47,7 @@ This project includes both backend and frontend services, and you can run them t
 
 Once the containers are up, you can access the project on your local machine by going to: `backend`
 This will run both the backend and frontend services on localhost using the Docker setup.
+You will now be able to access the interactive interface running at `http://localhost:3000/agents`  
 
 # 🧩 Agent Configuration
 
