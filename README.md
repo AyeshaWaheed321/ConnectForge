@@ -89,7 +89,7 @@ You can also view the full configuration example in [`sample_config.txt`](./samp
 Here are tested and working examples of `mcpServers` configurations that you can regsiter via the UI directly when registering/editing the agents.
 Click to expand each section and copy-paste directly into your configuration JSON.
 
-### Github Agent
+### 🔧 Github Agent
 
   <details> <summary> GitHub </summary>
 
@@ -113,7 +113,7 @@ Click to expand each section and copy-paste directly into your configuration JSO
 
   </details>
 
-### Github-Extended Agent
+### 🤖 Github-Extended Agent
 
   <details> <summary> GitHub Extended </summary>
   We have implemented a custom PR summarizer in our backend code which can be used to extend the tools of GitHub mcp server above by simply extending the mcpServers dictionary in UI when adding/editing the agent config as explained below:
@@ -138,7 +138,7 @@ Click to expand each section and copy-paste directly into your configuration JSO
 
   </details>
 
-### PostgreSQL Agent
+### 🛢️PostgreSQL Agent
 
   <details> <summary> PostgreSQL</summary>
 
@@ -160,7 +160,7 @@ Click to expand each section and copy-paste directly into your configuration JSO
 
   </details>
 
-### Sequential Thinking Agent
+### 🧠 Sequential Thinking Agent
 
   <details> <summary>Sequential Thinking</summary>
 
@@ -177,7 +177,7 @@ Click to expand each section and copy-paste directly into your configuration JSO
 
   </details>
 
-### Filesystem Agent
+### 🗂️ Filesystem Agent
 
   <details> <summary>Filesystem</summary>
 
